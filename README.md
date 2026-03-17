@@ -6,15 +6,20 @@ A comprehensive command-line interface for the [Fatture in Cloud](https://www.fa
 
 ## Installation
 
+### Download the PHAR (recommended)
+
+```bash
+curl -sL https://github.com/16bitsrl/fattureincloud-cli/releases/latest/download/fic -o /usr/local/bin/fic
+chmod +x /usr/local/bin/fic
+```
+
+### Via Composer
+
 ```bash
 composer global require 16bitsrl/fattureincloud-cli
 ```
 
-Make sure Composer's global bin directory is in your `PATH`:
-
-```bash
-composer global config bin-dir --absolute
-```
+> **Note:** This may fail if you have other global packages (e.g. Laravel Valet) that pin conflicting illuminate versions. Use the PHAR download instead.
 
 ## Authentication
 

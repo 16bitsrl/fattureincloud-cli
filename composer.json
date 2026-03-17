@@ -16,15 +16,15 @@
         }
     ],
     "require": {
-        "php": "^8.2",
-        "illuminate/http": "^12.55",
-        "laravel-zero/framework": "^12.0.2",
-        "spatie/laravel-openapi-cli": "^1.0"
+        "php": "^8.2"
     },
     "require-dev": {
+        "illuminate/http": "^12.55",
+        "laravel-zero/framework": "^12.0.2",
         "laravel/pint": "^1.25.1",
         "mockery/mockery": "^1.6.12",
-        "pestphp/pest": "^3.8.4|^4.1.2"
+        "pestphp/pest": "^3.8.4|^4.1.2",
+        "spatie/laravel-openapi-cli": "^1.0"
     },
     "autoload": {
         "psr-4": {

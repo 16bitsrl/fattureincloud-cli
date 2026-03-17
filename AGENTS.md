@@ -35,11 +35,13 @@ php fic app:build fic --build-version=1.0.0
 ## Important notes
 
 - Provider registration is manual in `config/app.php` — Laravel Zero disables auto-discovery
-- The `OpenApiCliServiceProvider` is registered in `AppServiceProvider::register()`, NOT in config/app.php
+- The `OpenApiCliServiceProvider` is registered in `config/app.php` providers array, AFTER `AppServiceProvider`
 - Use `.auth()` callback, NOT `.bearer()` — the token is loaded dynamically from TokenStore
 - `resources/` directory MUST be in `box.json` for PHAR builds
 - `resource_path()` works in PHARs but paths must be relative
 - All runtime deps are in `require-dev` because the distributed artifact is a compiled PHAR
+- `box.json` has `"exclude-dev-files": false` so dev deps get bundled into the PHAR
+- `composer.json` `require` only has `php: ^8.2` — this avoids dependency conflicts with `composer global require`
 - `composer.json` `bin` points to `builds/fic` (the PHAR) for `composer global require` to work
 - When updating the agent skill, verify command names against actual `fic fic:list` output
 
