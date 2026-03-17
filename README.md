@@ -90,6 +90,27 @@ fic fic:list-cashbook-entries --company-id=12345 --date-from=2025-01-01 --date-t
 fic fic:get-company-info --company-id=12345
 fic fic:get-user-info
 fic fic:list-user-companies
+
+# Plain-text client search helper
+fic clients:search zanetto --company-id=12345
+fic suppliers:search zanetto --company-id=12345
+fic products:search consulting --company-id=12345
+```
+
+### Searching clients
+
+Fatture in Cloud `--q` uses its own query syntax, not plain free text.
+
+```bash
+# Plain-text search helper
+fic clients:search zanetto --company-id=12345
+fic suppliers:search studio --company-id=12345
+fic products:search consulting --company-id=12345
+
+# Raw API query syntax
+fic fic:list-clients --company-id=12345 --q="name like '%zanetto%'" --json
+fic fic:list-suppliers --company-id=12345 --q="name like '%studio%'" --json
+fic fic:list-products --company-id=12345 --q="name like '%consulting%'" --json
 ```
 
 ### Output formats

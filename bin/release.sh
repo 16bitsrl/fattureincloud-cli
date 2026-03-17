@@ -35,7 +35,7 @@ echo "Building PHAR $VERSION..."
 php "$PROJECT_DIR/fic" app:build fic --build-version="$VERSION"
 
 echo "Checking PHAR sync..."
-"$PROJECT_DIR/bin/check-phar-sync.sh"
+EXPECTED_VERSION="$VERSION" "$PROJECT_DIR/bin/check-phar-sync.sh"
 
 echo "Checking PHAR version..."
 actual_phar_version="$("$PROJECT_DIR/builds/fic" --version)"

@@ -61,6 +61,26 @@ fic company:current --json
 
 When `company_id` is set as default, you still need to pass it as `--company-id` to API commands, but you can read it from `fic company:current --json`.
 
+## Plain-text search helpers
+
+The raw API `--q` parameter uses Fatture in Cloud query syntax such as `name like '%acme%'`.
+For plain-text search, prefer the helper commands:
+
+```bash
+fic clients:search Acme --company-id=COMPANY_ID
+fic clients:search Acme --company-id=COMPANY_ID --json
+fic suppliers:search Studio --company-id=COMPANY_ID
+fic products:search consulting --company-id=COMPANY_ID
+```
+
+When you use raw `--q`, write full query syntax:
+
+```bash
+fic fic:list-clients --company-id=COMPANY_ID --q="name like '%acme%'" --json
+fic fic:list-suppliers --company-id=COMPANY_ID --q="name like '%studio%'" --json
+fic fic:list-products --company-id=COMPANY_ID --q="name like '%consulting%'" --json
+```
+
 ## Output formats
 
 All API commands support multiple output formats:
@@ -338,6 +358,6 @@ See [references/workflows.md](references/workflows.md) for detailed multi-step w
 - Document types for issued documents: `invoice`, `quote`, `proforma`, `receipt`, `delivery_note`, `credit_note`, `order`
 - The `--input` flag accepts JSON strings for POST/PUT requests
 - Attachment upload is token-based: upload first, then pass `attachment_token` to the document create/modify call
-- List endpoints support `--page`, `--per-page`, `--sort`, `--q` (search) parameters
+- List endpoints support `--page`, `--per-page`, `--sort`, `--q` parameters using Fatture in Cloud query syntax
 - Field filtering is available with `--fields` and `--fieldset` parameters
 - When an API call fails, the error response includes details in JSON format

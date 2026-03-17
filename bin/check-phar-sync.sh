@@ -23,7 +23,12 @@ if [ ! -f "$PHAR_PATH" ]; then
     exit 1
 fi
 
-source_version="$(php "$SOURCE_ENTRYPOINT" --version)"
+source_version="${EXPECTED_VERSION:-}"
+
+if [ -z "$source_version" ]; then
+    source_version="$(php "$SOURCE_ENTRYPOINT" --version)"
+fi
+
 phar_version="$("$PHAR_PATH" --version)"
 
 source_version="$(normalize_version "$source_version")"

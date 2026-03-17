@@ -4,7 +4,7 @@
 
 ```bash
 # 1. Find or create the client
-fic fic:list-clients --company-id=COMPANY_ID --q="Acme" --json
+fic clients:search Acme --company-id=COMPANY_ID --json
 
 # 2. Get available VAT types
 fic fic:list-vat-types --company-id=COMPANY_ID --json
@@ -162,8 +162,11 @@ fic fic:get-received-document --company-id=COMPANY_ID --document-id=DOCUMENT_ID 
 # List all products
 fic fic:list-products --company-id=COMPANY_ID --json
 
-# Search for a specific product
-fic fic:list-products --company-id=COMPANY_ID --q="consulting" --json
+# Search for a specific product (raw API query syntax)
+fic fic:list-products --company-id=COMPANY_ID --q="name like '%consulting%'" --json
+
+# Or use the plain-text helper
+fic products:search consulting --company-id=COMPANY_ID --json
 
 # Update a product's price
 fic fic:modify-product --company-id=COMPANY_ID --product-id=PRODUCT_ID --input='{
