@@ -1,0 +1,28 @@
+name: Check PHAR sync
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  phar-sync:
+    name: Verify builds/fic matches source version
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, mbstring, xml, dom, fileinfo, tokenizer, filter, openssl, phar, ctype, json
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Check PHAR sync
+        run: ./bin/check-phar-sync.sh

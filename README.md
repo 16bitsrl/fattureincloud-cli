@@ -183,21 +183,29 @@ composer test
 
 ## Releasing a new version
 
-1. **Build the PHAR**:
+Use the release script:
 
-    ```bash
-    php fic app:build fic --build-version=X.Y.Z
-    ```
+```bash
+./bin/release.sh X.Y.Z
+```
 
-2. **Commit and push**:
+It will:
 
-    ```bash
-    git add builds/fic
-    git commit -m "Release vX.Y.Z"
-    git push origin main
-    ```
+- build `builds/fic` with the requested version
+- verify that `builds/fic` matches the source version
+- commit `builds/fic`
+- create tag `vX.Y.Z`
+- push branch and tag
 
-3. **Create a release** in the GitHub UI — this creates the tag, triggers Packagist, and automatically updates the changelog.
+Then the GitHub release workflow will build the PHAR and static binaries for Linux, macOS, and Windows.
+
+If you only want to verify that the committed PHAR is still aligned with the source version:
+
+```bash
+./bin/check-phar-sync.sh
+```
+
+CI also runs the same sync check on pushes and pull requests.
 
 Users install or update with `composer global require 16bitsrl/fattureincloud-cli`.
 

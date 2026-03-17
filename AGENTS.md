@@ -14,6 +14,8 @@ Laravel Zero 12 CLI application using `spatie/laravel-openapi-cli` to auto-gener
 - `app/Commands/Auth/` — login, logout, status, refresh commands
 - `app/Commands/Company/` — set/current company context commands
 - `skills/fattureincloud/SKILL.md` — agent skill file
+- `bin/check-phar-sync.sh` — verifies that committed `builds/fic` matches the source version
+- `bin/release.sh` — release helper that rebuilds `builds/fic`, commits it, tags, and pushes
 - `bin/update-spec.sh` — script to update the OpenAPI spec from upstream
 
 ## Development
@@ -30,6 +32,12 @@ composer format
 
 # Build PHAR
 php fic app:build fic --build-version=1.0.0
+
+# Check PHAR sync
+./bin/check-phar-sync.sh
+
+# Prepare and push a release
+./bin/release.sh 1.0.0
 ```
 
 ## Important notes
@@ -43,6 +51,7 @@ php fic app:build fic --build-version=1.0.0
 - `box.json` has `"exclude-dev-files": false` so dev deps get bundled into the PHAR
 - `composer.json` `require` only has `php: ^8.2` — this avoids dependency conflicts with `composer global require`
 - `composer.json` `bin` points to `builds/fic` (the PHAR) for `composer global require` to work
+- Never tag manually for a release; use `./bin/release.sh X.Y.Z` so `builds/fic` stays in sync
 - When updating the agent skill, verify command names against actual `fic fic:list` output
 
 ## Updating the spec
@@ -52,4 +61,4 @@ php fic app:build fic --build-version=1.0.0
 ./bin/update-spec.sh v2.1.8       # specific tag
 ```
 
-After updating, rebuild the PHAR and commit.
+After updating, rebuild the PHAR and commit, or use `./bin/release.sh X.Y.Z` if this is part of a release.
