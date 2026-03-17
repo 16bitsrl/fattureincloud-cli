@@ -139,7 +139,7 @@ composer test
 
 - Built with [Laravel Zero](https://laravel-zero.com) and [Spatie Laravel OpenAPI CLI](https://spatie.be/docs/laravel-openapi-cli)
 - API by [Fatture in Cloud](https://developers.fattureincloud.it)
-- Made by [16bit S.r.l.](https://16bit.ai)
+- Made by [16bit S.r.l.](https://16bit.it)
 
 ## License
 
