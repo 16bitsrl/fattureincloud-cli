@@ -51,7 +51,7 @@ Get your access token at [secure.fattureincloud.it/api](https://secure.fatturein
 
 ### Company context
 
-Most API calls require a `company_id`. Set a default to avoid repeating it:
+Most API calls require a `--company-id` option. Set a default to avoid repeating it:
 
 ```bash
 # Interactive selection from your companies
@@ -107,6 +107,43 @@ fic fic:list-clients --company-id=12345 --yaml
 # Compact JSON (best for piping)
 fic fic:list-clients --company-id=12345 --minify
 ```
+
+### Attachments
+
+Attachment upload for issued and received documents is token-based.
+Upload commands only return an `attachment_token`: they do not attach the file directly to the document.
+
+```bash
+# Upload an issued document attachment
+fic fic:upload-issued-document-attachment \
+  --company-id=12345 \
+  --field=filename=document.pdf \
+  --field='attachment=@/absolute/path/to/document.pdf' \
+  --json
+
+# Then pass the token when creating or modifying the document
+fic fic:modify-issued-document --company-id=12345 --document-id=99 --input='{
+  "data": {
+    "attachment_token": "abc123..."
+  }
+}'
+
+# Upload a received document attachment
+fic fic:upload-received-document-attachment \
+  --company-id=12345 \
+  --field=filename=invoice.pdf \
+  --field='attachment=@/absolute/path/to/invoice.pdf' \
+  --json
+
+# Then pass the token when creating or modifying the document
+fic fic:modify-received-document --company-id=12345 --document-id=77 --input='{
+  "data": {
+    "attachment_token": "abc123..."
+  }
+}'
+```
+
+Verify the result with `fic fic:get-issued-document` or `fic fic:get-received-document` and check fields like `attachment_url` or `attachment_preview_url`.
 
 ## API coverage
 
