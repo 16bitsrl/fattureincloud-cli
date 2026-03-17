@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Build static self-contained binaries for all platforms.
-# Uses pre-built micro.sfx from static-php.dev (common build).
+# Uses pre-built micro.sfx from static-php.dev.
 #
 # Usage:
 #   ./bin/build-static.sh                    # build for current platform
@@ -17,14 +17,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 PHAR="$PROJECT_DIR/builds/fic"
 OUT_DIR="$PROJECT_DIR/builds/static"
-PHP_VERSION="${PHP_VERSION:-8.4.5}"
-BASE_URL="https://dl.static-php.dev/static-php-cli/common"
+COMMON_PHP_VERSION="${COMMON_PHP_VERSION:-8.4.5}"
+WINDOWS_PHP_VERSION="${WINDOWS_PHP_VERSION:-8.4.18}"
+COMMON_BASE_URL="https://dl.static-php.dev/static-php-cli/common"
+WINDOWS_BASE_URL="https://dl.static-php.dev/static-php-cli/windows/spc-max"
 
 PLATFORMS=(
     "macos-aarch64"
     "macos-x86_64"
     "linux-aarch64"
     "linux-x86_64"
+    "windows-x86_64"
 )
 
 if [ ! -f "$PHAR" ]; then
@@ -37,29 +40,43 @@ mkdir -p "$OUT_DIR"
 
 build_platform() {
     local platform="$1"
-    local url="${BASE_URL}/php-${PHP_VERSION}-micro-${platform}.tar.gz"
-    local tarball="$OUT_DIR/micro-${platform}.tar.gz"
+    local url
+    local archive
     local output="$OUT_DIR/fic-${platform}"
+
+    if [ "$platform" = "windows-x86_64" ]; then
+        url="${WINDOWS_BASE_URL}/php-${WINDOWS_PHP_VERSION}-micro-win.zip"
+        archive="$OUT_DIR/micro-${platform}.zip"
+        output="${output}.exe"
+    else
+        url="${COMMON_BASE_URL}/php-${COMMON_PHP_VERSION}-micro-${platform}.tar.gz"
+        archive="$OUT_DIR/micro-${platform}.tar.gz"
+    fi
 
     echo "Building fic-${platform}..."
     echo "  Downloading micro.sfx from ${url}"
 
-    HTTP_CODE=$(curl -fsSL -w "%{http_code}" -o "$tarball" "$url" 2>/dev/null || echo "000")
+    HTTP_CODE=$(curl -fsSL -w "%{http_code}" -o "$archive" "$url" 2>/dev/null || echo "000")
 
-    if [ "$HTTP_CODE" != "200" ] && [ ! -f "$tarball" ]; then
+    if [ "$HTTP_CODE" != "200" ] && [ ! -f "$archive" ]; then
         echo "  WARNING: Download failed (HTTP ${HTTP_CODE}), skipping ${platform}"
-        rm -f "$tarball"
+        rm -f "$archive"
         return 1
     fi
 
-    tar xzf "$tarball" -C "$OUT_DIR"
+    if [ "$platform" = "windows-x86_64" ]; then
+        unzip -oq "$archive" -d "$OUT_DIR"
+    else
+        tar xzf "$archive" -C "$OUT_DIR"
+    fi
+
     cat "$OUT_DIR/micro.sfx" "$PHAR" > "$output"
     chmod +x "$output"
 
     local size=$(ls -lh "$output" | awk '{print $5}')
     echo "  Built: ${output} (${size})"
 
-    rm -f "$tarball" "$OUT_DIR/micro.sfx"
+    rm -f "$archive" "$OUT_DIR/micro.sfx"
 }
 
 TARGET="${1:-current}"
