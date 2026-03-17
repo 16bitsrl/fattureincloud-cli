@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use App\Services\SpecNormalizer;
 use App\Services\TokenStore;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\ServiceProvider;
 use Spatie\OpenApiCli\Facades\OpenApiCli;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -14,8 +16,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Use a writable location for the normalized spec (PHAR can't write inside itself)
+        $cacheDir = TokenStore::configDir().DIRECTORY_SEPARATOR.'cache';
+        $specPath = SpecNormalizer::normalize(
+            resource_path('openapi/fattureincloud.yaml'),
+            $cacheDir.DIRECTORY_SEPARATOR.'fattureincloud-normalized.yaml',
+        );
+
         OpenApiCli::register(
-            specPath: resource_path('openapi/fattureincloud.yaml'),
+            specPath: $specPath,
             namespace: 'fic',
         )
             ->baseUrl('https://api-v2.fattureincloud.it')
