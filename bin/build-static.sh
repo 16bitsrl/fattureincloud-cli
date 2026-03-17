@@ -45,7 +45,7 @@ build_platform() {
     local output="$OUT_DIR/fic-${platform}"
 
     if [ "$platform" = "windows-x86_64" ]; then
-        url="${WINDOWS_BASE_URL}/php-${WINDOWS_PHP_VERSION}-micro-win.zip"
+        url="https://dl.static-php.dev/down?path=static-php-cli%2Fwindows%2Fspc-max%2Fphp-${WINDOWS_PHP_VERSION}-micro-win.zip"
         archive="$OUT_DIR/micro-${platform}.zip"
         output="${output}.exe"
     else
@@ -56,7 +56,7 @@ build_platform() {
     echo "Building fic-${platform}..."
     echo "  Downloading micro.sfx from ${url}"
 
-    HTTP_CODE=$(curl -fsSL -w "%{http_code}" -o "$archive" "$url" 2>/dev/null || echo "000")
+    HTTP_CODE=$(curl --retry 3 --retry-all-errors -fsSL -w "%{http_code}" -o "$archive" "$url" 2>/dev/null || echo "000")
 
     if [ "$HTTP_CODE" != "200" ] && [ ! -f "$archive" ]; then
         echo "  WARNING: Download failed (HTTP ${HTTP_CODE}), skipping ${platform}"

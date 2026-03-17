@@ -47,6 +47,7 @@ jobs:
     needs: build-phar
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - platform: linux-x86_64
@@ -83,11 +84,11 @@ jobs:
       - name: Download micro.sfx
         run: |
           if [ "${{ matrix.archive_ext }}" = "zip" ]; then
-            curl -fsSL "https://dl.static-php.dev/static-php-cli/${{ matrix.source }}/php-${{ matrix.php_version }}-micro-win.zip" \
+            curl --retry 3 --retry-all-errors -fsSL "https://dl.static-php.dev/down?path=static-php-cli%2F${{ matrix.source }}%2Fphp-${{ matrix.php_version }}-micro-win.zip" \
               -o micro.zip
             unzip -q micro.zip
           else
-            curl -fsSL "https://dl.static-php.dev/static-php-cli/${{ matrix.source }}/php-${{ matrix.php_version }}-micro-${{ matrix.platform }}.tar.gz" \
+            curl --retry 3 --retry-all-errors -fsSL "https://dl.static-php.dev/static-php-cli/${{ matrix.source }}/php-${{ matrix.php_version }}-micro-${{ matrix.platform }}.tar.gz" \
               -o micro.tar.gz
             tar xzf micro.tar.gz
           fi
