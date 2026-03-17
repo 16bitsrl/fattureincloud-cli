@@ -6,25 +6,28 @@ A comprehensive command-line interface for the [Fatture in Cloud](https://www.fa
 
 ## Installation
 
-### Download the PHAR (recommended)
-
 ```bash
-curl -sL https://github.com/16bitsrl/fattureincloud-cli/releases/latest/download/fic -o /usr/local/bin/fic
-chmod +x /usr/local/bin/fic
+composer global require 16bitsrl/fattureincloud-cli
 ```
 
-### Via Composer
+Make sure Composer's global bin directory is in your `PATH`. You can find the path with:
+
+```bash
+composer global config bin-dir --absolute
+```
+
+## Updating
 
 ```bash
 composer global require 16bitsrl/fattureincloud-cli
 ```
 
-> **Note:** This may fail if you have other global packages (e.g. Laravel Valet) that pin conflicting illuminate versions. Use the PHAR download instead.
+## Usage
 
-## Authentication
+### Authentication
 
 ```bash
-# Interactive login (choose between token or OAuth2)
+# Log in with your access token
 fic auth:login
 
 # Direct token login (non-interactive, ideal for CI/agents)
@@ -40,13 +43,13 @@ fic auth:status --json
 # Refresh OAuth token
 fic auth:refresh
 
-# Logout
+# Log out
 fic auth:logout
 ```
 
 Get your access token at [secure.fattureincloud.it/api](https://secure.fattureincloud.it/api).
 
-## Company context
+### Company context
 
 Most API calls require a `company_id`. Set a default to avoid repeating it:
 
@@ -61,35 +64,48 @@ fic company:set 12345
 fic company:current
 ```
 
-## Usage
+### Commands
 
-Every Fatture in Cloud API endpoint has a corresponding command:
+Every Fatture in Cloud API endpoint has a corresponding command. Run `fic <command> --help` for details on a specific command.
 
 ```bash
 # List all 123 available API commands
 fic fic:list
 
 # Examples
-fic fic:list-clients --company_id=12345
-fic fic:get-issued-document --company_id=12345 --document_id=99
-fic fic:create-client --company_id=12345 --data='{"data":{"name":"Acme S.r.l.","type":"company"}}'
-fic fic:send-e-invoice --company_id=12345 --document_id=99
+fic fic:list-clients --company-id=12345
+fic fic:get-issued-document --company-id=12345 --document-id=99
+fic fic:create-client --company-id=12345 --input='{"data":{"name":"Acme S.r.l.","type":"company"}}'
+fic fic:send-e-invoice --company-id=12345 --document-id=99
+
+fic fic:list-suppliers --company-id=12345
+fic fic:list-products --company-id=12345
+fic fic:list-issued-documents --company-id=12345 --type=invoice
+fic fic:list-received-documents --company-id=12345
+fic fic:list-receipts --company-id=12345
+fic fic:list-f24 --company-id=12345
+fic fic:list-archive-documents --company-id=12345
+fic fic:list-cashbook-entries --company-id=12345 --date-from=2025-01-01 --date-to=2025-12-31
+
+fic fic:get-company-info --company-id=12345
+fic fic:get-user-info
+fic fic:list-user-companies
 ```
 
 ### Output formats
 
 ```bash
-# JSON (default, best for agents)
-fic fic:list-clients --company_id=12345 --json
+# Human-readable tables (default)
+fic fic:list-clients --company-id=12345
+
+# JSON
+fic fic:list-clients --company-id=12345 --json
 
 # YAML
-fic fic:list-clients --company_id=12345 --yaml
+fic fic:list-clients --company-id=12345 --yaml
 
 # Compact JSON (best for piping)
-fic fic:list-clients --company_id=12345 --minify
-
-# Human-readable tables
-fic fic:list-clients --company_id=12345
+fic fic:list-clients --company-id=12345 --minify
 ```
 
 ## API coverage
@@ -114,38 +130,54 @@ fic fic:list-clients --company_id=12345
 
 ## Agent skill
 
-This CLI ships with a skill for AI coding agents (Claude Code, etc.):
+This repository includes an [agent skill](https://skills.sh) that teaches coding agents how to use the Fatture in Cloud CLI.
+
+### Install
 
 ```bash
 fic install-skill
 ```
+
+## Testing
+
+```bash
+composer test
+```
+
+## Releasing a new version
+
+1. **Build the PHAR**:
+
+    ```bash
+    php fic app:build fic --build-version=X.Y.Z
+    ```
+
+2. **Commit and push**:
+
+    ```bash
+    git add builds/fic
+    git commit -m "Release vX.Y.Z"
+    git push origin main
+    ```
+
+3. **Create a release** in the GitHub UI — this creates the tag, triggers Packagist, and automatically updates the changelog.
+
+Users install or update with `composer global require 16bitsrl/fattureincloud-cli`.
 
 ## Updating the OpenAPI spec
 
 ```bash
 ./bin/update-spec.sh              # latest from master
 ./bin/update-spec.sh v2.1.8       # specific tag
-```
-
-## Development
-
-```bash
-# Run locally
-php fic <command>
-
-# Build PHAR
-php fic app:build fic --build-version=1.0.0
-
-# Run tests
-composer test
+fic clear-cache                   # clear cached normalized spec
 ```
 
 ## Credits
 
 - Built with [Laravel Zero](https://laravel-zero.com) and [Spatie Laravel OpenAPI CLI](https://spatie.be/docs/laravel-openapi-cli)
 - API by [Fatture in Cloud](https://developers.fattureincloud.it)
-- Made by [16bit S.r.l.](https://16bit.it)
+- Made by [Mattia Trapani](https://github.com/zupolgec) at [16bit S.r.l.](https://16bit.it)
 
 ## License
 
-MIT. See [LICENSE.md](LICENSE.md).
+The MIT License (MIT). Please see [LICENSE.md](LICENSE.md) for more information.
