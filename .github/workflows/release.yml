@@ -1,0 +1,115 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-phar:
+    name: Build PHAR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, mbstring, xml, dom, fileinfo, tokenizer, filter, openssl, phar, ctype, json
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build PHAR
+        run: php fic app:build fic --build-version=${{ steps.version.outputs.version }}
+
+      - name: Test PHAR
+        run: ./builds/fic --version
+
+      - name: Upload PHAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phar
+          path: builds/fic
+
+  build-static:
+    name: Build static (${{ matrix.platform }})
+    needs: build-phar
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - platform: linux-x86_64
+          - platform: linux-aarch64
+          - platform: macos-x86_64
+          - platform: macos-aarch64
+    steps:
+      - name: Download PHAR
+        uses: actions/download-artifact@v4
+        with:
+          name: phar
+
+      - name: Download micro.sfx
+        env:
+          PHP_VERSION: '8.4.5'
+        run: |
+          curl -fsSL "https://dl.static-php.dev/static-php-cli/common/php-${PHP_VERSION}-micro-${{ matrix.platform }}.tar.gz" \
+            -o micro.tar.gz
+          tar xzf micro.tar.gz
+
+      - name: Combine micro.sfx + PHAR
+        run: |
+          cat micro.sfx fic > fic-${{ matrix.platform }}
+          chmod +x fic-${{ matrix.platform }}
+          ls -lh fic-${{ matrix.platform }}
+
+      - name: Upload static binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: fic-${{ matrix.platform }}
+          path: fic-${{ matrix.platform }}
+
+  release:
+    name: Create release
+    needs: [build-phar, build-static]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          # PHAR (for composer global require users)
+          cp artifacts/phar/fic release/fic
+          # Static binaries
+          cp artifacts/fic-linux-x86_64/fic-linux-x86_64 release/
+          cp artifacts/fic-linux-aarch64/fic-linux-aarch64 release/
+          cp artifacts/fic-macos-x86_64/fic-macos-x86_64 release/
+          cp artifacts/fic-macos-aarch64/fic-macos-aarch64 release/
+          # Generate checksums
+          cd release && sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            release/fic
+            release/fic-linux-x86_64
+            release/fic-linux-aarch64
+            release/fic-macos-x86_64
+            release/fic-macos-aarch64
+            release/checksums.txt
