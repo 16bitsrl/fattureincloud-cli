@@ -50,6 +50,7 @@ fi
 git -C "$PROJECT_DIR" add builds/fic
 git -C "$PROJECT_DIR" commit -m "Release $TAG"
 git -C "$PROJECT_DIR" tag "$TAG"
-git -C "$PROJECT_DIR" push origin main --follow-tags
+git -C "$PROJECT_DIR" push origin main
+git -C "$PROJECT_DIR" push origin "$TAG"
 
 echo "Release prepared and pushed: $TAG"
