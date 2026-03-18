@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use App\Services\FicDescriber;
 use App\Services\SpecNormalizer;
 use App\Services\TokenStore;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\ServiceProvider;
+use NunoMaduro\LaravelConsoleSummary\Contracts\DescriberContract;
 use Spatie\OpenApiCli\Facades\OpenApiCli;
 
 class AppServiceProvider extends ServiceProvider
@@ -16,6 +18,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->app->singleton(DescriberContract::class, FicDescriber::class);
+
         // Use a writable location for the normalized spec (PHAR can't write inside itself)
         $cacheDir = TokenStore::configDir().DIRECTORY_SEPARATOR.'cache';
         $specPath = SpecNormalizer::normalize(

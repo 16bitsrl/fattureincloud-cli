@@ -44,6 +44,12 @@
             "pestphp/pest-plugin": true
         }
     },
+    "scripts": {
+        "test": "pest",
+        "format": "pint",
+        "build": "php fic app:build fic --build-version=$(cat VERSION | tr -d '[:space:]')",
+        "check-sync": "./bin/check-phar-sync.sh"
+    },
     "minimum-stability": "stable",
     "prefer-stable": true,
     "bin": ["builds/fic"]

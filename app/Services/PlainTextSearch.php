@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use Symfony\Component\Process\Process;
+use Illuminate\Support\Facades\Artisan;
 
 class PlainTextSearch
 {
@@ -44,25 +44,20 @@ class PlainTextSearch
      */
     protected static function runQuery(string $command, int|string $companyId, int $page, int $perPage, string $query): ?array
     {
-        $process = new Process([
-            PHP_BINARY,
-            base_path('fic'),
-            $command,
-            "--company-id={$companyId}",
-            "--page={$page}",
-            "--per-page={$perPage}",
-            "--q={$query}",
-            '--json',
-            '--no-interaction',
+        $exitCode = Artisan::call($command, [
+            '--company-id' => $companyId,
+            '--page' => $page,
+            '--per-page' => $perPage,
+            '--q' => $query,
+            '--json' => true,
+            '--no-interaction' => true,
         ]);
 
-        $process->run();
-
-        if (! $process->isSuccessful()) {
+        if ($exitCode !== 0) {
             return null;
         }
 
-        $payload = json_decode($process->getOutput(), true);
+        $payload = json_decode(Artisan::output(), true);
 
         return is_array($payload) ? $payload : null;
     }

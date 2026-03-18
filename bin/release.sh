@@ -31,26 +31,19 @@ if git -C "$PROJECT_DIR" rev-parse "$TAG" >/dev/null 2>&1; then
     exit 1
 fi
 
-echo "Building PHAR $VERSION..."
+echo "Updating VERSION to $VERSION..."
+printf '%s\n' "$VERSION" > "$PROJECT_DIR/VERSION"
+
+echo "Building PHAR..."
 php "$PROJECT_DIR/fic" app:build fic --build-version="$VERSION"
 
-echo "Checking PHAR sync..."
-EXPECTED_VERSION="$VERSION" "$PROJECT_DIR/bin/check-phar-sync.sh"
+echo "Verifying PHAR..."
+"$PROJECT_DIR/bin/check-phar-sync.sh"
 
-echo "Checking PHAR version..."
-actual_phar_version="$("$PROJECT_DIR/builds/fic" --version)"
-actual_phar_version="${actual_phar_version#fic }"
-actual_phar_version="${actual_phar_version#v}"
-
-if [ "$actual_phar_version" != "$VERSION" ]; then
-    echo "ERROR: Built PHAR reports $actual_phar_version, expected $VERSION"
-    exit 1
-fi
-
-git -C "$PROJECT_DIR" add builds/fic
+git -C "$PROJECT_DIR" add VERSION builds/fic
 git -C "$PROJECT_DIR" commit -m "Release $TAG"
 git -C "$PROJECT_DIR" tag "$TAG"
 git -C "$PROJECT_DIR" push origin main
 git -C "$PROJECT_DIR" push origin "$TAG"
 
-echo "Release prepared and pushed: $TAG"
+echo "Released: $TAG"

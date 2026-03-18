@@ -26,7 +26,7 @@ return [
     |
     */
 
-    'version' => app('git.version'),
+    'version' => trim(file_get_contents(base_path('VERSION'))),
 
     /*
     |--------------------------------------------------------------------------
