@@ -95,13 +95,31 @@ fic fic:create-received-document --company-id=COMPANY_ID --input='{
 }'
 ```
 
+## List received documents by date range
+
+Use `--q` with date filters. Do NOT use `--date-from` / `--date-to` (those only work on cashbook).
+
+```bash
+# All received documents from 2025
+fic fic:list-received-documents --company-id=COMPANY_ID \
+  --q="date >= '2025-01-01' AND date <= '2025-12-31'" --json
+
+# Received documents from a specific supplier in 2025
+fic fic:list-received-documents --company-id=COMPANY_ID \
+  --q="entity.name = 'Fornitore S.r.l.' AND date >= '2025-01-01' AND date <= '2025-12-31'" --json
+
+# Issued invoices from Q1 2025, sorted by date
+fic fic:list-issued-documents --company-id=COMPANY_ID --type=invoice \
+  --q="date >= '2025-01-01' AND date <= '2025-03-31'" --sort=-date --json
+```
+
 ## Monthly financial summary
 
 ```bash
 # Get receipts monthly totals
 fic fic:get-receipts-monthly-totals --company-id=COMPANY_ID --type=monthly --year=2025 --json
 
-# Get cashbook entries for the month
+# Get cashbook entries for the month (cashbook supports --date-from/--date-to)
 fic fic:list-cashbook-entries --company-id=COMPANY_ID --date-from=2025-03-01 --date-to=2025-03-31 --json
 
 # Get company plan usage
@@ -172,6 +190,17 @@ fic products:search consulting --company-id=COMPANY_ID --json
 fic fic:modify-product --company-id=COMPANY_ID --product-id=PRODUCT_ID --input='{
   "data": {"net_price": 150}
 }'
+```
+
+## Paginate through large result sets
+
+```bash
+# 1. Get first page to check total
+fic fic:list-clients --company-id=COMPANY_ID --per-page=100 --json
+
+# 2. If total > 100, get subsequent pages
+fic fic:list-clients --company-id=COMPANY_ID --per-page=100 --page=2 --json
+fic fic:list-clients --company-id=COMPANY_ID --per-page=100 --page=3 --json
 ```
 
 ## Set up webhooks for automation
