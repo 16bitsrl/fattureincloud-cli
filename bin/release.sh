@@ -34,13 +34,17 @@ fi
 echo "Updating VERSION to $VERSION..."
 printf '%s\n' "$VERSION" > "$PROJECT_DIR/VERSION"
 
+echo "Updating skill version to $VERSION..."
+sed -i.bak "s/^  version: .*/  version: $VERSION/" "$PROJECT_DIR/skills/fattureincloud/SKILL.md"
+rm -f "$PROJECT_DIR/skills/fattureincloud/SKILL.md.bak"
+
 echo "Building PHAR..."
 php "$PROJECT_DIR/fic" app:build fic --build-version="$VERSION"
 
 echo "Verifying PHAR..."
 "$PROJECT_DIR/bin/check-phar-sync.sh"
 
-git -C "$PROJECT_DIR" add VERSION builds/fic
+git -C "$PROJECT_DIR" add VERSION builds/fic skills/fattureincloud/SKILL.md
 git -C "$PROJECT_DIR" commit -m "Release $TAG"
 git -C "$PROJECT_DIR" tag "$TAG"
 git -C "$PROJECT_DIR" push origin main

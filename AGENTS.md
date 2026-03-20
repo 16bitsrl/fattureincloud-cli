@@ -31,14 +31,24 @@ composer test
 composer format
 
 # Build PHAR
-php fic app:build fic --build-version=1.0.0
+php fic app:build fic --build-version=1.0.1
 
 # Check PHAR sync
 ./bin/check-phar-sync.sh
 
 # Prepare and push a release
-./bin/release.sh 1.0.0
+./bin/release.sh 1.0.1
 ```
+
+## Release checklist
+
+- update `VERSION`
+- update `CHANGELOG.md`
+- update README and skill docs if commands or workflows changed
+- rebuild `builds/fic`
+- run `composer test`
+- run `./bin/check-phar-sync.sh`
+- use `./bin/release.sh X.Y.Z` instead of tagging manually
 
 ## Important notes
 
@@ -52,7 +62,7 @@ php fic app:build fic --build-version=1.0.0
 - `composer.json` `require` only has `php: ^8.2` — this avoids dependency conflicts with `composer global require`
 - `composer.json` `bin` points to `builds/fic` (the PHAR) for `composer global require` to work
 - Never tag manually for a release; use `./bin/release.sh X.Y.Z` so `builds/fic` stays in sync
-- When updating the agent skill, verify command names against actual `fic fic:list` output
+- When updating the agent skill, verify command names against actual `fic api:list` output
 
 ## Updating the spec
 

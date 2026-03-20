@@ -1,170 +1,89 @@
 # Fatture in Cloud CLI
 
-A comprehensive command-line interface for the [Fatture in Cloud](https://www.fattureincloud.it) API — Italy's most popular e-invoicing platform.
+A CLI for the [Fatture in Cloud](https://www.fattureincloud.it) API, with full API coverage, agent-oriented docs, and a practical XML import workflow for fattura elettronica files.
 
-**123 API endpoints** auto-generated from the official OpenAPI spec. Built for humans and agents.
+See `CHANGELOG.md` for release notes starting from `1.0.1`.
 
-## Installation
+## Install
 
-```bash
-composer global require 16bitsrl/fattureincloud-cli
-```
-
-Make sure Composer's global bin directory is in your `PATH`. You can find the path with:
-
-```bash
-composer global config bin-dir --absolute
-```
-
-## Updating
+### Composer
 
 ```bash
 composer global require 16bitsrl/fattureincloud-cli
 ```
 
-## Usage
+### Static binaries
 
-### Authentication
+Each release also ships static builds for Linux, macOS, and Windows.
+
+- Download them from the GitHub release assets
+- Or inspect the local examples in `builds/static/`
+
+After download, make the binary executable on Unix-like systems:
 
 ```bash
-# Log in with your access token
+chmod +x ./fic-linux-x86_64
+./fic-linux-x86_64 --version
+```
+
+## Quick start
+
+```bash
+# Authenticate
 fic auth:login
 
-# Direct token login (non-interactive, ideal for CI/agents)
-fic auth:login --token=YOUR_ACCESS_TOKEN
-
-# OAuth2 flow
-fic auth:login --client-id=ID --client-secret=SECRET
-
-# Check status
-fic auth:status
-fic auth:status --json
-
-# Refresh OAuth token
-fic auth:refresh
-
-# Log out
-fic auth:logout
-```
-
-Get your access token at [secure.fattureincloud.it/api](https://secure.fattureincloud.it/api).
-
-### Company context
-
-Most API calls require a `--company-id` option. Set a default to avoid repeating it:
-
-```bash
-# Interactive selection from your companies
+# Set your default company
 fic company:set
 
-# Direct set
-fic company:set 12345
+# Explore the generated API commands
+fic api:list
 
-# Check current
-fic company:current
-```
-
-### Commands
-
-Every Fatture in Cloud API endpoint has a corresponding command. Run `fic <command> --help` for details on a specific command.
-
-```bash
-# List all 123 available API commands
-fic fic:list
-
-# Examples
-fic fic:list-clients --company-id=12345
-fic fic:get-issued-document --company-id=12345 --document-id=99
-fic fic:create-client --company-id=12345 --input='{"data":{"name":"Acme S.r.l.","type":"company"}}'
-fic fic:send-e-invoice --company-id=12345 --document-id=99
-
-fic fic:list-suppliers --company-id=12345
-fic fic:list-products --company-id=12345
-fic fic:list-issued-documents --company-id=12345 --type=invoice
-fic fic:list-received-documents --company-id=12345
-fic fic:list-receipts --company-id=12345
-fic fic:list-f24 --company-id=12345
-fic fic:list-archive-documents --company-id=12345
-fic fic:list-cashbook-entries --company-id=12345 --date-from=2025-01-01 --date-to=2025-12-31
-
-fic fic:get-company-info --company-id=12345
-fic fic:get-user-info
-fic fic:list-user-companies
-
-# Plain-text client search helper
+# Search helpers
 fic clients:search acme --company-id=12345
 fic suppliers:search studio --company-id=12345
 fic products:search consulting --company-id=12345
 ```
 
-### Searching clients
+Get your manual token at [secure.fattureincloud.it/api](https://secure.fattureincloud.it/api).
 
-Fatture in Cloud `--q` uses its own query syntax, not plain free text.
+## XML e-invoice import
 
-```bash
-# Plain-text search helper
-fic clients:search acme --company-id=12345
-fic suppliers:search studio --company-id=12345
-fic products:search consulting --company-id=12345
+The official API does not ingest raw XML, so the CLI recreates documents through JSON APIs.
 
-# Raw API query syntax
-fic fic:list-clients --company-id=12345 --q="name like '%acme%'" --json
-fic fic:list-suppliers --company-id=12345 --q="name like '%studio%'" --json
-fic fic:list-products --company-id=12345 --q="name like '%consulting%'" --json
-```
-
-### Output formats
+For issued XML imports, the recreated document is treated as an electronic invoice by default.
 
 ```bash
-# Human-readable tables (default)
-fic fic:list-clients --company-id=12345
+# Preview a single XML
+fic einvoice:import /absolute/path/to/fattura.xml --company-id=12345 --dry-run
 
-# JSON
-fic fic:list-clients --company-id=12345 --json
+# Preview a signed XML.p7m file
+fic einvoice:import /absolute/path/to/fattura.xml.p7m --company-id=12345 --dry-run
 
-# YAML
-fic fic:list-clients --company-id=12345 --yaml
-
-# Compact JSON (best for piping)
-fic fic:list-clients --company-id=12345 --minify
+# Import a folder of XML files
+fic einvoice:import /absolute/path/to/xml-dir --company-id=12345 --direction=issued --yes
 ```
 
-### Attachments
+The import supports recap before creation, dry runs, `.xml` and `.xml.p7m` inputs, client/supplier matching, embedded attachment carry-over, and structured mapping for supported e-invoice fields before falling back to `ei_raw`. If neither XML party matches the selected company, the import is rejected.
 
-Attachment upload for issued and received documents is token-based.
-Upload commands only return an `attachment_token`: they do not attach the file directly to the document.
+## Agent skill
+
+This repository includes an [agent skill](https://skills.sh) that teaches coding agents how to use the CLI, including filtering, sorting, pagination, FAQ edge cases, quotas, and XML import.
+
+### Install the skill
 
 ```bash
-# Upload an issued document attachment
-fic fic:upload-issued-document-attachment \
-  --company-id=12345 \
-  --field=filename=document.pdf \
-  --field='attachment=@/absolute/path/to/document.pdf' \
-  --json
-
-# Then pass the token when creating or modifying the document
-fic fic:modify-issued-document --company-id=12345 --document-id=99 --input='{
-  "data": {
-    "attachment_token": "abc123..."
-  }
-}'
-
-# Upload a received document attachment
-fic fic:upload-received-document-attachment \
-  --company-id=12345 \
-  --field=filename=invoice.pdf \
-  --field='attachment=@/absolute/path/to/invoice.pdf' \
-  --json
-
-# Then pass the token when creating or modifying the document
-fic fic:modify-received-document --company-id=12345 --document-id=77 --input='{
-  "data": {
-    "attachment_token": "abc123..."
-  }
-}'
+fic install-skill
 ```
 
-Verify the result with `fic fic:get-issued-document` or `fic fic:get-received-document` and check fields like `attachment_url` or `attachment_preview_url`.
+Skill sources live in `skills/fattureincloud/`.
+
+## Handy examples
+
+```bash
+fic api:list-issued-documents --company-id=12345 --type=invoice --sort=-date --json
+fic api:list-clients --company-id=12345 --q="vat_number = 'IT01234567890'" --json
+fic api:send-e-invoice --company-id=12345 --document-id=99
+```
 
 ## API coverage
 
@@ -188,13 +107,7 @@ Verify the result with `fic fic:get-issued-document` or `fic fic:get-received-do
 
 ## Agent skill
 
-This repository includes an [agent skill](https://skills.sh) that teaches coding agents how to use the Fatture in Cloud CLI.
-
-### Install
-
-```bash
-fic install-skill
-```
+See the dedicated section above.
 
 ## Testing
 

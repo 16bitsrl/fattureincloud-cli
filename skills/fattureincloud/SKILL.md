@@ -4,7 +4,7 @@ description: Manage Fatture in Cloud invoicing platform via the fic CLI. Create 
 license: MIT
 metadata:
   author: 16bit S.r.l.
-  version: 1.0.0
+  version: 1.0.1
   repository: https://github.com/16bitsrl/fattureincloud-cli
 ---
 
@@ -19,6 +19,12 @@ Use the `fic` CLI to interact with the Fatture in Cloud API - Italy's most popul
 - A default company must be set: run `fic company:set` if not yet configured
 
 Check status with: `fic auth:status --json`
+
+## Reference docs bundled with this skill
+
+- `references/api-basics.md` - filtering, sorting, pagination, and response customization
+- `references/faqs-and-troubleshooting.md` - API limitations, classic FAQ answers, errors, and quotas
+- `references/xml-import.md` - XML import strategy, mapping behavior, and V.2025 notes
 
 ## Authentication
 
@@ -76,9 +82,9 @@ fic products:search consulting --company-id=COMPANY_ID
 When you use raw `--q`, write full query syntax:
 
 ```bash
-fic fic:list-clients --company-id=COMPANY_ID --q="name like '%acme%'" --json
-fic fic:list-suppliers --company-id=COMPANY_ID --q="name like '%studio%'" --json
-fic fic:list-products --company-id=COMPANY_ID --q="name like '%consulting%'" --json
+fic api:list-clients --company-id=COMPANY_ID --q="name like '%acme%'" --json
+fic api:list-suppliers --company-id=COMPANY_ID --q="name like '%studio%'" --json
+fic api:list-products --company-id=COMPANY_ID --q="name like '%consulting%'" --json
 ```
 
 ## Output formats
@@ -146,31 +152,31 @@ Use `AND` / `OR` and parentheses:
 
 ```bash
 # Invoices from 2025
-fic fic:list-issued-documents --company-id=COMPANY_ID --type=invoice \
+fic api:list-issued-documents --company-id=COMPANY_ID --type=invoice \
   --q="date >= '2025-01-01' AND date <= '2025-12-31'" --json
 
 # Received documents from a specific supplier
-fic fic:list-received-documents --company-id=COMPANY_ID \
+fic api:list-received-documents --company-id=COMPANY_ID \
   --q="entity.name = 'Fornitore S.r.l.'" --json
 
 # Received documents from 2025 by a specific supplier
-fic fic:list-received-documents --company-id=COMPANY_ID \
+fic api:list-received-documents --company-id=COMPANY_ID \
   --q="entity.name = 'Fornitore S.r.l.' AND date >= '2025-01-01' AND date <= '2025-12-31'" --json
 
 # Unpaid invoices (next_due_date in the past)
-fic fic:list-issued-documents --company-id=COMPANY_ID --type=invoice \
+fic api:list-issued-documents --company-id=COMPANY_ID --type=invoice \
   --q="next_due_date < '2025-03-18'" --json
 
 # Client by VAT number
-fic fic:list-clients --company-id=COMPANY_ID \
+fic api:list-clients --company-id=COMPANY_ID \
   --q="vat_number = '12345678901'" --json
 
 # Products over 100 EUR
-fic fic:list-products --company-id=COMPANY_ID \
+fic api:list-products --company-id=COMPANY_ID \
   --q="net_price > 100" --json
 ```
 
-**IMPORTANT**: Document list endpoints (issued, received) do NOT have `--date-from` / `--date-to` options. You MUST use `--q` with the `date` field to filter by date range. Only `fic:list-cashbook-entries` has `--date-from` and `--date-to` as dedicated parameters.
+**IMPORTANT**: Document list endpoints (issued, received) do NOT have `--date-from` / `--date-to` options. You MUST use `--q` with the `date` field to filter by date range. Only `api:list-cashbook-entries` has `--date-from` and `--date-to` as dedicated parameters.
 
 ## Pagination
 
@@ -185,10 +191,10 @@ The response includes pagination metadata: `current_page`, `last_page`, `total`,
 
 ```bash
 # Get page 2 with 25 items per page
-fic fic:list-clients --company-id=COMPANY_ID --page=2 --per-page=25 --json
+fic api:list-clients --company-id=COMPANY_ID --page=2 --per-page=25 --json
 
 # Get all invoices (first check total, then paginate)
-fic fic:list-issued-documents --company-id=COMPANY_ID --type=invoice --per-page=100 --json
+fic api:list-issued-documents --company-id=COMPANY_ID --type=invoice --per-page=100 --json
 ```
 
 ## Sorting with `--sort`
@@ -197,13 +203,13 @@ Use `--sort` with comma-separated field names. Prefix with `-` for descending or
 
 ```bash
 # Sort invoices by date descending
-fic fic:list-issued-documents --company-id=COMPANY_ID --type=invoice --sort=-date --json
+fic api:list-issued-documents --company-id=COMPANY_ID --type=invoice --sort=-date --json
 
 # Sort clients by name ascending
-fic fic:list-clients --company-id=COMPANY_ID --sort=name --json
+fic api:list-clients --company-id=COMPANY_ID --sort=name --json
 
 # Sort received documents by date desc, then amount asc
-fic fic:list-received-documents --company-id=COMPANY_ID --sort=-date,amount_net --json
+fic api:list-received-documents --company-id=COMPANY_ID --sort=-date,amount_net --json
 ```
 
 ### Sortable fields per endpoint
@@ -242,6 +248,39 @@ Rate limit headers are included in every response: `RateLimit-HourlyRemaining`, 
 
 When exceeded: 403 for hourly/monthly limits, 429 for short-term limits. Both include a `Retry-After` header.
 
+Agents should treat `403` plus `Retry-After` as quota exhaustion, not just as a scope problem.
+
+## XML e-invoice import
+
+The official API still does not accept raw XML uploads, but the CLI can recreate XML invoices through JSON:
+
+```bash
+# Preview a single XML
+fic einvoice:import /absolute/path/to/fattura.xml --company-id=COMPANY_ID --dry-run
+
+# Preview a signed XML.p7m file
+fic einvoice:import /absolute/path/to/fattura.xml.p7m --company-id=COMPANY_ID --dry-run
+
+# Import a folder of outgoing XML files
+fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --direction=issued --yes
+
+# Import supplier XML files as received documents
+fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --direction=received --yes
+```
+
+Important notes:
+
+- The CLI parses FatturaPA XML and recreates the document through the API
+- For issued XML imports, the recreated document should be an electronic invoice by default
+- For received XML imports, treat electronic XML as the default case too, but remember that received documents can also come from non-electronic sources like receipts, foreign invoices, or scanned paper documents
+- A recap is shown before import, and `--dry-run` is available for validation
+- Signed `.xml.p7m` files are supported and unpacked before import
+- XML attachments are carried over too; if there are multiple embedded attachments, they are bundled into a zip because Fatture in Cloud exposes one structured attachment slot (`attachment_token`)
+- The import preserves XML-specific sections in `ei_raw`
+- Supported e-invoice fields are mapped to structured Fatture in Cloud fields first; `ei_raw` is the fallback for unsupported sections
+- If neither `CedentePrestatore` nor `CessionarioCommittente` matches the selected company, the importer must stop instead of proceeding
+- The bundled XML import reference covers current V.2025 nuances (`TD29`, `RF20`, technical specs 1.9)
+
 ## Scopes
 
 Scopes follow the `resource:level` pattern. Levels: `:r` (read-only), `:a` (full access).
@@ -273,85 +312,85 @@ Scopes follow the `resource:level` pattern. Levels: `:r` (read-only), `:a` (full
 
 ### List all available commands
 ```bash
-fic fic:list
+fic api:list
 ```
 
 ### User & Companies
 ```bash
-fic fic:get-user-info
-fic fic:list-user-companies
-fic fic:get-company-info --company-id=COMPANY_ID
-fic fic:get-company-plan-usage --company-id=COMPANY_ID --category=documents
+fic api:get-user-info
+fic api:list-user-companies
+fic api:get-company-info --company-id=COMPANY_ID
+fic api:get-company-plan-usage --company-id=COMPANY_ID --category=documents
 ```
 
 ### Clients
 ```bash
 # List clients
-fic fic:list-clients --company-id=COMPANY_ID
+fic api:list-clients --company-id=COMPANY_ID
 
 # Get a specific client
-fic fic:get-client --company-id=COMPANY_ID --client-id=CLIENT_ID
+fic api:get-client --company-id=COMPANY_ID --client-id=CLIENT_ID
 
 # Create a client
-fic fic:create-client --company-id=COMPANY_ID --input='{"data":{"name":"Acme S.r.l.","vat_number":"IT12345678901","type":"company"}}'
+fic api:create-client --company-id=COMPANY_ID --input='{"data":{"name":"Acme S.r.l.","vat_number":"IT12345678901","type":"company"}}'
 
 # Modify a client
-fic fic:modify-client --company-id=COMPANY_ID --client-id=CLIENT_ID --input='{"data":{"name":"New Name"}}'
+fic api:modify-client --company-id=COMPANY_ID --client-id=CLIENT_ID --input='{"data":{"name":"New Name"}}'
 
 # Delete a client
-fic fic:delete-client --company-id=COMPANY_ID --client-id=CLIENT_ID
+fic api:delete-client --company-id=COMPANY_ID --client-id=CLIENT_ID
 ```
 
 ### Suppliers
 ```bash
-fic fic:list-suppliers --company-id=COMPANY_ID
-fic fic:get-supplier --company-id=COMPANY_ID --supplier-id=SUPPLIER_ID
-fic fic:create-supplier --company-id=COMPANY_ID --input='{"data":{"name":"Fornitore S.r.l.","type":"company"}}'
-fic fic:modify-supplier --company-id=COMPANY_ID --supplier-id=SUPPLIER_ID --input='{"data":{"name":"New Name"}}'
-fic fic:delete-supplier --company-id=COMPANY_ID --supplier-id=SUPPLIER_ID
+fic api:list-suppliers --company-id=COMPANY_ID
+fic api:get-supplier --company-id=COMPANY_ID --supplier-id=SUPPLIER_ID
+fic api:create-supplier --company-id=COMPANY_ID --input='{"data":{"name":"Fornitore S.r.l.","type":"company"}}'
+fic api:modify-supplier --company-id=COMPANY_ID --supplier-id=SUPPLIER_ID --input='{"data":{"name":"New Name"}}'
+fic api:delete-supplier --company-id=COMPANY_ID --supplier-id=SUPPLIER_ID
 ```
 
 ### Products
 ```bash
-fic fic:list-products --company-id=COMPANY_ID
-fic fic:get-product --company-id=COMPANY_ID --product-id=PRODUCT_ID
-fic fic:create-product --company-id=COMPANY_ID --input='{"data":{"name":"Widget","net_price":100,"code":"WDG001"}}'
-fic fic:modify-product --company-id=COMPANY_ID --product-id=PRODUCT_ID --input='{"data":{"net_price":120}}'
-fic fic:delete-product --company-id=COMPANY_ID --product-id=PRODUCT_ID
+fic api:list-products --company-id=COMPANY_ID
+fic api:get-product --company-id=COMPANY_ID --product-id=PRODUCT_ID
+fic api:create-product --company-id=COMPANY_ID --input='{"data":{"name":"Widget","net_price":100,"code":"WDG001"}}'
+fic api:modify-product --company-id=COMPANY_ID --product-id=PRODUCT_ID --input='{"data":{"net_price":120}}'
+fic api:delete-product --company-id=COMPANY_ID --product-id=PRODUCT_ID
 ```
 
 ### Issued documents (invoices, quotes, orders, credit notes, etc.)
 ```bash
 # List invoices
-fic fic:list-issued-documents --company-id=COMPANY_ID --type=invoice
+fic api:list-issued-documents --company-id=COMPANY_ID --type=invoice
 
 # List invoices from 2025
-fic fic:list-issued-documents --company-id=COMPANY_ID --type=invoice \
+fic api:list-issued-documents --company-id=COMPANY_ID --type=invoice \
   --q="date >= '2025-01-01' AND date <= '2025-12-31'" --json
 
 # List quotes
-fic fic:list-issued-documents --company-id=COMPANY_ID --type=quote
+fic api:list-issued-documents --company-id=COMPANY_ID --type=quote
 
 # Get a document
-fic fic:get-issued-document --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:get-issued-document --company-id=COMPANY_ID --document-id=DOC_ID
 
 # Create an invoice
-fic fic:create-issued-document --company-id=COMPANY_ID --input='{"data":{"type":"invoice","entity":{"id":CLIENT_ID},"items_list":[{"name":"Service","net_price":1000,"qty":1,"vat":{"id":VAT_ID}}]}}'
+fic api:create-issued-document --company-id=COMPANY_ID --input='{"data":{"type":"invoice","entity":{"id":CLIENT_ID},"items_list":[{"name":"Service","net_price":1000,"qty":1,"vat":{"id":VAT_ID}}]}}'
 
 # Modify a document
-fic fic:modify-issued-document --company-id=COMPANY_ID --document-id=DOC_ID --input='{"data":{...}}'
+fic api:modify-issued-document --company-id=COMPANY_ID --document-id=DOC_ID --input='{"data":{...}}'
 
 # Delete a document
-fic fic:delete-issued-document --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:delete-issued-document --company-id=COMPANY_ID --document-id=DOC_ID
 
 # Get document totals
-fic fic:get-existing-issued-document-totals --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:get-existing-issued-document-totals --company-id=COMPANY_ID --document-id=DOC_ID
 
 # Get email data for sending
-fic fic:get-email-data --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:get-email-data --company-id=COMPANY_ID --document-id=DOC_ID
 
 # Schedule email
-fic fic:schedule-email --company-id=COMPANY_ID --document-id=DOC_ID --input='{"data":{"sender_email":"you@example.com","recipient_email":"client@example.com","subject":"Invoice","body":"Please find attached."}}'
+fic api:schedule-email --company-id=COMPANY_ID --document-id=DOC_ID --input='{"data":{"sender_email":"you@example.com","recipient_email":"client@example.com","subject":"Invoice","body":"Please find attached."}}'
 ```
 
 #### Attachments
@@ -361,14 +400,14 @@ The upload command does not attach the file directly to the document: it only re
 
 ```bash
 # 1. Upload the file and get attachment_token
-fic fic:upload-issued-document-attachment \
+fic api:upload-issued-document-attachment \
   --company-id=COMPANY_ID \
   --field=filename=document.pdf \
   --field='attachment=@/absolute/path/to/document.pdf' \
   --json
 
 # 2a. Attach it when creating a document
-fic fic:create-issued-document --company-id=COMPANY_ID --input='{
+fic api:create-issued-document --company-id=COMPANY_ID --input='{
   "data": {
     "type": "invoice",
     "entity": {"id": CLIENT_ID},
@@ -377,7 +416,7 @@ fic fic:create-issued-document --company-id=COMPANY_ID --input='{
 }'
 
 # 2b. Or attach it to an existing document
-fic fic:modify-issued-document \
+fic api:modify-issued-document \
   --company-id=COMPANY_ID \
   --document-id=DOCUMENT_ID \
   --input='{
@@ -387,7 +426,7 @@ fic fic:modify-issued-document \
   }'
 
 # 3. Verify the attachment was linked
-fic fic:get-issued-document --company-id=COMPANY_ID --document-id=DOCUMENT_ID --json
+fic api:get-issued-document --company-id=COMPANY_ID --document-id=DOCUMENT_ID --json
 ```
 
 Notes:
@@ -399,32 +438,32 @@ Notes:
 ### E-Invoices (fattura elettronica)
 ```bash
 # Send e-invoice to SDI
-fic fic:send-e-invoice --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:send-e-invoice --company-id=COMPANY_ID --document-id=DOC_ID
 
 # Verify e-invoice XML
-fic fic:verify-e-invoice-xml --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:verify-e-invoice-xml --company-id=COMPANY_ID --document-id=DOC_ID
 
 # Get e-invoice XML
-fic fic:get-e-invoice-xml --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:get-e-invoice-xml --company-id=COMPANY_ID --document-id=DOC_ID
 
 # Get rejection reason
-fic fic:get-e-invoice-rejection-reason --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:get-e-invoice-rejection-reason --company-id=COMPANY_ID --document-id=DOC_ID
 ```
 
 ### Received documents (fatture passive)
 ```bash
-fic fic:list-received-documents --company-id=COMPANY_ID
-fic fic:get-received-document --company-id=COMPANY_ID --document-id=DOC_ID
-fic fic:create-received-document --company-id=COMPANY_ID --input='{"data":{...}}'
-fic fic:modify-received-document --company-id=COMPANY_ID --document-id=DOC_ID --input='{"data":{...}}'
-fic fic:delete-received-document --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:list-received-documents --company-id=COMPANY_ID
+fic api:get-received-document --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:create-received-document --company-id=COMPANY_ID --input='{"data":{...}}'
+fic api:modify-received-document --company-id=COMPANY_ID --document-id=DOC_ID --input='{"data":{...}}'
+fic api:delete-received-document --company-id=COMPANY_ID --document-id=DOC_ID
 
 # Filter by date range (use --q, NOT --date-from/--date-to)
-fic fic:list-received-documents --company-id=COMPANY_ID \
+fic api:list-received-documents --company-id=COMPANY_ID \
   --q="date >= '2025-01-01' AND date <= '2025-12-31'" --json
 
 # Filter by supplier name
-fic fic:list-received-documents --company-id=COMPANY_ID \
+fic api:list-received-documents --company-id=COMPANY_ID \
   --q="entity.name = 'Fornitore S.r.l.'" --json
 ```
 
@@ -435,14 +474,14 @@ The upload command does not attach the file directly to the document: it only re
 
 ```bash
 # 1. Upload the file and get attachment_token
-fic fic:upload-received-document-attachment \
+fic api:upload-received-document-attachment \
   --company-id=COMPANY_ID \
   --field=filename=invoice.pdf \
   --field='attachment=@/absolute/path/to/invoice.pdf' \
   --json
 
 # 2a. Attach it when creating a document
-fic fic:create-received-document --company-id=COMPANY_ID --input='{
+fic api:create-received-document --company-id=COMPANY_ID --input='{
   "data": {
     "type": "expense",
     "entity": {"name": "Fornitore S.r.l."},
@@ -451,7 +490,7 @@ fic fic:create-received-document --company-id=COMPANY_ID --input='{
 }'
 
 # 2b. Or attach it to an existing document
-fic fic:modify-received-document \
+fic api:modify-received-document \
   --company-id=COMPANY_ID \
   --document-id=DOCUMENT_ID \
   --input='{
@@ -461,7 +500,7 @@ fic fic:modify-received-document \
   }'
 
 # 3. Verify the attachment was linked
-fic fic:get-received-document --company-id=COMPANY_ID --document-id=DOCUMENT_ID --json
+fic api:get-received-document --company-id=COMPANY_ID --document-id=DOCUMENT_ID --json
 ```
 
 Notes:
@@ -472,71 +511,71 @@ Notes:
 
 ### Receipts (corrispettivi)
 ```bash
-fic fic:list-receipts --company-id=COMPANY_ID
-fic fic:get-receipt --company-id=COMPANY_ID --document-id=DOC_ID
-fic fic:create-receipt --company-id=COMPANY_ID --input='{"data":{...}}'
-fic fic:get-receipts-monthly-totals --company-id=COMPANY_ID
+fic api:list-receipts --company-id=COMPANY_ID
+fic api:get-receipt --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:create-receipt --company-id=COMPANY_ID --input='{"data":{...}}'
+fic api:get-receipts-monthly-totals --company-id=COMPANY_ID
 ```
 
 ### Taxes (F24)
 ```bash
-fic fic:list-f24 --company-id=COMPANY_ID
-fic fic:get-f24 --company-id=COMPANY_ID --document-id=DOC_ID
-fic fic:create-f24 --company-id=COMPANY_ID --input='{"data":{"amount":1000,"description":"IRPEF","due_date":"2025-06-16"}}'
-fic fic:modify-f24 --company-id=COMPANY_ID --document-id=DOC_ID --input='{"data":{...}}'
-fic fic:delete-f24 --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:list-f24 --company-id=COMPANY_ID
+fic api:get-f24 --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:create-f24 --company-id=COMPANY_ID --input='{"data":{"amount":1000,"description":"IRPEF","due_date":"2025-06-16"}}'
+fic api:modify-f24 --company-id=COMPANY_ID --document-id=DOC_ID --input='{"data":{...}}'
+fic api:delete-f24 --company-id=COMPANY_ID --document-id=DOC_ID
 ```
 
 ### Cashbook (prima nota)
 ```bash
 # Cashbook is the ONLY endpoint with --date-from / --date-to parameters
-fic fic:list-cashbook-entries --company-id=COMPANY_ID --date-from=2025-01-01 --date-to=2025-12-31
-fic fic:get-cashbook-entry --company-id=COMPANY_ID --document-id=DOC_ID
-fic fic:create-cashbook-entry --company-id=COMPANY_ID --input='{"data":{...}}'
+fic api:list-cashbook-entries --company-id=COMPANY_ID --date-from=2025-01-01 --date-to=2025-12-31
+fic api:get-cashbook-entry --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:create-cashbook-entry --company-id=COMPANY_ID --input='{"data":{...}}'
 ```
 
 ### Archive
 ```bash
-fic fic:list-archive-documents --company-id=COMPANY_ID
-fic fic:get-archive-document --company-id=COMPANY_ID --document-id=DOC_ID
-fic fic:create-archive-document --company-id=COMPANY_ID --input='{"data":{"date":"2025-01-15","description":"Contract"}}'
+fic api:list-archive-documents --company-id=COMPANY_ID
+fic api:get-archive-document --company-id=COMPANY_ID --document-id=DOC_ID
+fic api:create-archive-document --company-id=COMPANY_ID --input='{"data":{"date":"2025-01-15","description":"Contract"}}'
 ```
 
 ### Settings
 ```bash
-fic fic:get-tax-profile --company-id=COMPANY_ID
+fic api:get-tax-profile --company-id=COMPANY_ID
 
 # Payment accounts
-fic fic:list-payment-accounts --company-id=COMPANY_ID
-fic fic:create-payment-account --company-id=COMPANY_ID --input='{"data":{"name":"Conto corrente","type":"standard"}}'
+fic api:list-payment-accounts --company-id=COMPANY_ID
+fic api:create-payment-account --company-id=COMPANY_ID --input='{"data":{"name":"Conto corrente","type":"standard"}}'
 
 # Payment methods
-fic fic:list-payment-methods --company-id=COMPANY_ID
-fic fic:create-payment-method --company-id=COMPANY_ID --input='{"data":{"name":"Bonifico","type":"standard"}}'
+fic api:list-payment-methods --company-id=COMPANY_ID
+fic api:create-payment-method --company-id=COMPANY_ID --input='{"data":{"name":"Bonifico","type":"standard"}}'
 
 # VAT types
-fic fic:list-vat-types --company-id=COMPANY_ID
-fic fic:create-vat-type --company-id=COMPANY_ID --input='{"data":{"value":22,"description":"IVA 22%"}}'
+fic api:list-vat-types --company-id=COMPANY_ID
+fic api:create-vat-type --company-id=COMPANY_ID --input='{"data":{"value":22,"description":"IVA 22%"}}'
 ```
 
 ### Info (reference data)
 ```bash
-fic fic:list-cities --postal-code=20100
-fic fic:list-countries
-fic fic:list-currencies
-fic fic:list-languages
-fic fic:list-units-of-measure
-fic fic:list-templates
-fic fic:list-cost-centers --company-id=COMPANY_ID
-fic fic:list-revenue-centers --company-id=COMPANY_ID
-fic fic:list-product-categories --company-id=COMPANY_ID
+fic api:list-cities --postal-code=20100
+fic api:list-countries
+fic api:list-currencies
+fic api:list-languages
+fic api:list-units-of-measure
+fic api:list-templates
+fic api:list-cost-centers --company-id=COMPANY_ID
+fic api:list-revenue-centers --company-id=COMPANY_ID
+fic api:list-product-categories --company-id=COMPANY_ID
 ```
 
 ### Webhooks
 ```bash
-fic fic:list-webhooks-subscriptions --company-id=COMPANY_ID
-fic fic:create-webhooks-subscription --company-id=COMPANY_ID --input='{"data":{"sink":"https://example.com/webhook","event_types":["it.fattureincloud.webhooks.issued_documents.invoices.create"]}}'
-fic fic:delete-webhooks-subscription --company-id=COMPANY_ID --subscription-id=SUB_ID
+fic api:list-webhooks-subscriptions --company-id=COMPANY_ID
+fic api:create-webhooks-subscription --company-id=COMPANY_ID --input='{"data":{"sink":"https://example.com/webhook","event_types":["it.fattureincloud.webhooks.issued_documents.invoices.create"]}}'
+fic api:delete-webhooks-subscription --company-id=COMPANY_ID --subscription-id=SUB_ID
 ```
 
 ## Common workflows
@@ -551,4 +590,4 @@ See [references/workflows.md](references/workflows.md) for detailed multi-step w
 - Attachment upload is token-based: upload first, then pass `attachment_token` to the document create/modify call
 - Field filtering is available with `--fields` and `--fieldset` parameters
 - When an API call fails, the error response includes details in JSON format
-- `--date-from` / `--date-to` are only available on `fic:list-cashbook-entries`. For all other list endpoints, use `--q` with date filters
+- `--date-from` / `--date-to` are only available on `api:list-cashbook-entries`. For all other list endpoints, use `--q` with date filters

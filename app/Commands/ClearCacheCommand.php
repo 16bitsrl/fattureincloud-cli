@@ -2,7 +2,6 @@
 
 namespace App\Commands;
 
-use Illuminate\Support\Facades\Cache;
 use LaravelZero\Framework\Commands\Command;
 
 class ClearCacheCommand extends Command

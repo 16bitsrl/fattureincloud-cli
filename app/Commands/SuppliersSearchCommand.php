@@ -43,7 +43,7 @@ class SuppliersSearchCommand extends Command
 
         $escapedTerm = str_replace("'", "''", $term);
 
-        $payload = PlainTextSearch::run('fic:list-suppliers', $companyId, (int) $this->option('page'), (int) $this->option('per-page'), [
+        $payload = PlainTextSearch::run('api:list-suppliers', $companyId, (int) $this->option('page'), (int) $this->option('per-page'), [
             "name like '%{$escapedTerm}%'",
             "vat_number like '%{$escapedTerm}%'",
             "tax_code like '%{$escapedTerm}%'",

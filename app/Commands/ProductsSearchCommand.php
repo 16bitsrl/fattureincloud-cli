@@ -43,7 +43,7 @@ class ProductsSearchCommand extends Command
 
         $escapedTerm = str_replace("'", "''", $term);
 
-        $payload = PlainTextSearch::run('fic:list-products', $companyId, (int) $this->option('page'), (int) $this->option('per-page'), [
+        $payload = PlainTextSearch::run('api:list-products', $companyId, (int) $this->option('page'), (int) $this->option('per-page'), [
             "name like '%{$escapedTerm}%'",
             "code like '%{$escapedTerm}%'",
         ]);

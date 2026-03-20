@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\FicApiClient;
 use App\Services\FicDescriber;
 use App\Services\SpecNormalizer;
 use App\Services\TokenStore;
@@ -29,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
 
         OpenApiCli::register(
             specPath: $specPath,
-            namespace: 'fic',
+            namespace: 'api',
         )
             ->baseUrl('https://api-v2.fattureincloud.it')
             ->useOperationIds()
@@ -46,9 +47,13 @@ class AppServiceProvider extends ServiceProvider
                 return $token;
             })
             ->onError(function (Response $response, Command $command) {
+                $retryAfter = $response->header('Retry-After');
+
                 return match ($response->status()) {
                     401 => $command->error('Authentication failed. Run: fic auth:login'),
-                    403 => $command->error('Permission denied. Check your token scopes.'),
+                    403 => $command->error($retryAfter
+                        ? 'Quota exhausted. Retry after '.$retryAfter.'s.'
+                        : 'Permission denied. Check your token scopes, company permissions, and plan limits.'),
                     429 => $command->warn('Rate limited. Retry after '.$response->header('Retry-After', '60').'s.'),
                     default => false,
                 };
@@ -61,5 +66,6 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(TokenStore::class);
+        $this->app->singleton(FicApiClient::class);
     }
 }

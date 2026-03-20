@@ -42,8 +42,8 @@ class StatusCommand extends Command
         $this->newLine();
         $this->line("  User:       {$status['user_name']}");
         $this->line("  Email:      {$status['user_email']}");
-        $this->line("  Company ID: ".($status['company_id'] ?? '<not set>'));
-        $this->line("  Refresh:    ".($status['has_refresh_token'] ? 'yes' : 'no'));
+        $this->line('  Company ID: '.($status['company_id'] ?? '<not set>'));
+        $this->line('  Refresh:    '.($status['has_refresh_token'] ? 'yes' : 'no'));
         $this->line("  Config:     {$status['config_dir']}");
 
         return self::SUCCESS;

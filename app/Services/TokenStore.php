@@ -13,11 +13,11 @@ class TokenStore
         }
 
         $home = match (true) {
-            PHP_OS_FAMILY === 'Windows' => getenv('USERPROFILE') ?: getenv('HOMEDRIVE') . getenv('HOMEPATH'),
+            PHP_OS_FAMILY === 'Windows' => getenv('USERPROFILE') ?: getenv('HOMEDRIVE').getenv('HOMEPATH'),
             default => getenv('HOME') ?: getenv('XDG_CONFIG_HOME') ?: '/tmp',
         };
 
-        $dir = rtrim($home, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . '.config' . DIRECTORY_SEPARATOR . 'fattureincloud-cli';
+        $dir = rtrim($home, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'.config'.DIRECTORY_SEPARATOR.'fattureincloud-cli';
 
         if (! is_dir($dir)) {
             mkdir($dir, 0700, true);
@@ -33,12 +33,12 @@ class TokenStore
 
     protected static function authPath(): string
     {
-        return static::configDir() . DIRECTORY_SEPARATOR . 'auth.json';
+        return static::configDir().DIRECTORY_SEPARATOR.'auth.json';
     }
 
     protected static function configPath(): string
     {
-        return static::configDir() . DIRECTORY_SEPARATOR . 'config.json';
+        return static::configDir().DIRECTORY_SEPARATOR.'config.json';
     }
 
     public static function save(array $data): void

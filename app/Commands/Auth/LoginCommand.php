@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Http;
 use LaravelZero\Framework\Commands\Command;
 
 use function Laravel\Prompts\password;
-use function Laravel\Prompts\text;
 use function Laravel\Prompts\select;
+use function Laravel\Prompts\text;
 
 class LoginCommand extends Command
 {
@@ -281,7 +281,7 @@ class LoginCommand extends Command
         );
 
         TokenStore::setCompanyId((int) $selected);
-        $companyName = $companies[array_search($selected, array_column($companies, 'id'))] ['name'] ?? $selected;
+        $companyName = $companies[array_search($selected, array_column($companies, 'id'))]['name'] ?? $selected;
         $this->info("Default company set: {$companyName} (ID: {$selected})");
     }
 }
