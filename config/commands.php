@@ -4,6 +4,7 @@ use Illuminate\Console\Scheduling\ScheduleFinishCommand;
 use Illuminate\Console\Scheduling\ScheduleListCommand;
 use Illuminate\Console\Scheduling\ScheduleRunCommand;
 use Illuminate\Foundation\Console\VendorPublishCommand;
+use LaravelZero\Framework\Commands\BuildCommand as LaravelZeroBuildCommand;
 use LaravelZero\Framework\Commands\StubPublishCommand;
 use NunoMaduro\LaravelConsoleSummary\SummaryCommand;
 use Symfony\Component\Console\Command\DumpCompletionCommand;
@@ -86,7 +87,7 @@ return [
     */
 
     'remove' => [
-        //
+        LaravelZeroBuildCommand::class,
     ],
 
 ];

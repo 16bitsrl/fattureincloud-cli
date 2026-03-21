@@ -97,7 +97,7 @@ it('rejects xml files that do not belong to the selected company', function () {
         '--dry-run' => true,
     ])
         ->expectsOutputToContain('XML import recap')
-        ->expectsOutputToContain('Status: blocked')
+        ->expectsOutputToContain('Status:     BLOCKED')
         ->expectsOutputToContain('This XML does not belong to the selected company')
         ->assertExitCode(1);
 });

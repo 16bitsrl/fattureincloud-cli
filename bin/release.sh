@@ -6,9 +6,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 VERSION="${1:-}"
+NO_PUSH="${2:-}"
 
 if [ -z "$VERSION" ]; then
-    echo "Usage: ./bin/release.sh X.Y.Z"
+    echo "Usage: ./bin/release.sh X.Y.Z [--no-push]"
+    exit 1
+fi
+
+if [ -n "$NO_PUSH" ] && [ "$NO_PUSH" != "--no-push" ]; then
+    echo "ERROR: Unknown option $NO_PUSH"
     exit 1
 fi
 
@@ -47,7 +53,10 @@ echo "Verifying PHAR..."
 git -C "$PROJECT_DIR" add VERSION builds/fic skills/fattureincloud/SKILL.md
 git -C "$PROJECT_DIR" commit -m "Release $TAG"
 git -C "$PROJECT_DIR" tag "$TAG"
-git -C "$PROJECT_DIR" push origin main
-git -C "$PROJECT_DIR" push origin "$TAG"
+
+if [ "$NO_PUSH" != "--no-push" ]; then
+    git -C "$PROJECT_DIR" push origin main
+    git -C "$PROJECT_DIR" push origin "$TAG"
+fi
 
 echo "Released: $TAG"
