@@ -76,10 +76,10 @@ The script (`bin/release.sh`) does the following automatically:
 ```
 # 1. Make your changes, test, format, commit
 composer test && composer format
-git add -A && git commit -m "Auto-detect direction in einvoice:import"
+git add -A && git commit -m "description of changes"
 
 # 2. Release (updates VERSION, builds PHAR, tags, pushes)
-./bin/release.sh 1.0.2
+./bin/release.sh X.Y.Z
 ```
 
 ## Important notes

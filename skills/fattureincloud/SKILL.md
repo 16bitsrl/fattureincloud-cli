@@ -4,7 +4,7 @@ description: Manage Fatture in Cloud invoicing platform via the fic CLI. Create 
 license: MIT
 metadata:
   author: 16bit S.r.l.
-  version: 1.0.1
+  version: 1.0.2
   repository: https://github.com/16bitsrl/fattureincloud-cli
 ---
 
