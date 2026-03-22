@@ -286,7 +286,7 @@ class XmlInvoiceMapper
         foreach ($payments as $payment) {
             $paymentMethod = $this->matchPaymentMethod((string) ($payment['method_code'] ?? ''), $paymentMethods);
 
-            $dueDate = !empty($payment['due_date']) ? $payment['due_date'] : $invoiceDate;
+            $dueDate = ! empty($payment['due_date']) ? $payment['due_date'] : $invoiceDate;
 
             $mapped[] = array_filter([
                 'due_date' => $dueDate,

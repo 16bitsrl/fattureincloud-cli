@@ -59,11 +59,11 @@ fic einvoice:import /absolute/path/to/fattura.xml --company-id=12345 --dry-run
 # Preview a signed XML.p7m file
 fic einvoice:import /absolute/path/to/fattura.xml.p7m --company-id=12345 --dry-run
 
-# Import a folder of XML files
-fic einvoice:import /absolute/path/to/xml-dir --company-id=12345 --direction=issued --yes
+# Import a folder of XML files (direction is auto-detected from XML content)
+fic einvoice:import /absolute/path/to/xml-dir --company-id=12345 --yes
 ```
 
-The import supports recap before creation, dry runs, `.xml` and `.xml.p7m` inputs, client/supplier matching, embedded attachment carry-over, and structured mapping for supported e-invoice fields before falling back to `ei_raw`. If neither XML party matches the selected company, the import is rejected.
+The import supports recap before creation, dry runs, `.xml` and `.xml.p7m` inputs, client/supplier matching, embedded attachment carry-over, automatic direction inference (issued/received/self-invoice), and structured mapping for supported e-invoice fields before falling back to `ei_raw`. If neither XML party matches the selected company, the import is rejected.
 
 ## Agent skill
 

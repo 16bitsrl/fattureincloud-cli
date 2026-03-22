@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning from `1.0.1` onward.
 
+## [1.0.2] - 2026-03-22
+
+### Changed
+
+- Removed `--direction` option from `einvoice:import`; direction is now auto-detected from XML content by comparing seller/buyer fiscal codes against the selected company
+- Self-invoice document types (TD16-TD23, TD28, TD29) are correctly classified as `issued` when both parties match the company
+
+### Added
+
+- Added reverse charge lifecycle documentation to skill workflows (TD01 N6.x -> TD16 self-invoice -> SDI round-trip)
+- Added Natura N6.x and self-invoice TD type reference tables to skill docs
+
+### Fixed
+
+- Code formatting fixes via Pint (BuildCommand, XmlInvoiceMapper, config/app.php)
+
+## [1.0.2] - 2026-03-22
+
+### Changed
+
+- Removed `--direction` option from `einvoice:import`; direction is now auto-detected from XML content by comparing seller/buyer fiscal codes against the selected company
+- Self-invoice document types (TD16-TD23, TD28, TD29) are correctly classified as `issued` when both parties match the company
+
+### Added
+
+- Added reverse charge lifecycle documentation to skill workflows (TD01 N6.x -> TD16 self-invoice -> SDI round-trip)
+- Added Natura N6.x and self-invoice TD type reference tables to skill docs
+
+### Fixed
+
+- Code formatting fixes via Pint (BuildCommand, XmlInvoiceMapper, config/app.php)
+
 ## [1.0.1] - 2026-03-20
 
 ### Added

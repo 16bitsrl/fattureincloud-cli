@@ -40,15 +40,47 @@ php fic app:build fic --build-version=1.0.1
 ./bin/release.sh 1.0.1
 ```
 
-## Release checklist
+## Release process
 
-- update `VERSION`
-- update `CHANGELOG.md`
-- update README and skill docs if commands or workflows changed
-- rebuild `builds/fic`
-- run `composer test`
-- run `./bin/check-phar-sync.sh`
-- use `./bin/release.sh X.Y.Z` instead of tagging manually
+Releasing has two phases: **prep** (your commit) and **release** (the script).
+
+### Phase 1 — prep commit
+
+1. Update `CHANGELOG.md` with the new version and changes
+2. Update README and skill docs if commands or workflows changed
+3. Run `composer test` to make sure tests pass
+4. Run `composer format` (Pint) to fix code style
+5. Commit everything: `git add -A && git commit -m "description of changes"`
+
+Do **NOT** update `VERSION` or `builds/fic` manually — `release.sh` handles both.
+
+### Phase 2 — release
+
+```bash
+./bin/release.sh 1.0.2            # or --no-push to skip pushing
+```
+
+The script (`bin/release.sh`) does the following automatically:
+1. Checks the working tree is clean (fails if dirty)
+2. Checks the tag doesn't already exist
+3. Updates `VERSION` to the given version
+4. Updates the `version:` field in `skills/fattureincloud/SKILL.md`
+5. Builds the PHAR (`builds/fic`) with the correct version
+6. Runs `bin/check-phar-sync.sh` to verify the build
+7. Commits VERSION + builds/fic + SKILL.md as "Release vX.Y.Z"
+8. Tags `vX.Y.Z`
+9. Pushes main and the tag (unless `--no-push`)
+
+### Summary
+
+```
+# 1. Make your changes, test, format, commit
+composer test && composer format
+git add -A && git commit -m "Auto-detect direction in einvoice:import"
+
+# 2. Release (updates VERSION, builds PHAR, tags, pushes)
+./bin/release.sh 1.0.2
+```
 
 ## Important notes
 

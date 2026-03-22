@@ -28,10 +28,11 @@ it('recognizes when neither XML party is the selected company', function () {
     $api = new FicApiClient('test-token');
     $invoice = $parser->parseFile(base_path('tests/Fixtures/einvoice/CHE114993395IVA_00007.xml'));
 
-    $identity = $resolver->resolve($api, 555, 'issued', $invoice);
+    $identity = $resolver->resolve($api, 555, $invoice);
 
     expect($identity['seller_company_match']['matched'])->toBeFalse()
         ->and($identity['buyer_company_match']['matched'])->toBeFalse()
+        ->and($identity['direction'])->toBeNull()
         ->and($identity['entity_match'])->toBeNull()
         ->and($identity['warnings'][0])->toContain('Neither CedentePrestatore nor CessionarioCommittente matches');
 });
@@ -67,8 +68,8 @@ it('reuses an existing client when the XML counterparty matches one in the datab
     $mapper = app(XmlInvoiceMapper::class);
     $api = new FicApiClient('test-token');
     $invoice = $parser->parseFile(base_path('tests/Fixtures/einvoice/IT06363391001_00001.xml'));
-    $identity = $resolver->resolve($api, 123, 'issued', $invoice);
-    $mapped = $mapper->map($invoice, 'issued', [
+    $identity = $resolver->resolve($api, 123, $invoice);
+    $mapped = $mapper->map($invoice, $identity['direction'], [
         ['id' => 7, 'value' => 22, 'description' => 'IVA 22%'],
     ], [
         [

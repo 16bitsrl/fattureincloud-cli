@@ -33,11 +33,8 @@ fic einvoice:import /absolute/path/to/fattura.xml --company-id=COMPANY_ID --dry-
 # Preview a signed XML.p7m file
 fic einvoice:import /absolute/path/to/fattura.xml.p7m --company-id=COMPANY_ID --dry-run
 
-# Import a folder of outgoing XML files
-fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --direction=issued --yes
-
-# Import supplier XML files as received documents
-fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --direction=received --yes
+# Import a folder of XML files (direction is auto-detected from XML content)
+fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --yes
 
 # Machine-readable planning output
 fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --dry-run --json

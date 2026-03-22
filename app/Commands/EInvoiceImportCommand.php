@@ -18,7 +18,6 @@ class EInvoiceImportCommand extends Command
     protected $signature = 'einvoice:import
         {path : XML file or folder to import}
         {--company-id= : Company ID (defaults to configured company)}
-        {--direction=issued : Import direction: issued or received}
         {--dry-run : Parse and preview without creating documents}
         {--yes : Skip confirmation prompt}
         {--json : Output machine-readable JSON}';
@@ -37,14 +36,6 @@ class EInvoiceImportCommand extends Command
 
         if (! TokenStore::getAccessToken()) {
             $this->error('Not authenticated. Run: fic auth:login');
-
-            return self::FAILURE;
-        }
-
-        $direction = strtolower((string) $this->option('direction'));
-
-        if (! in_array($direction, ['issued', 'received'], true)) {
-            $this->error('Invalid --direction value. Use issued or received.');
 
             return self::FAILURE;
         }
@@ -78,18 +69,23 @@ class EInvoiceImportCommand extends Command
         foreach ($files as $file) {
             try {
                 $invoice = $parser->parseFile($file);
-                $identity = $resolver->resolve($api, $companyId, $direction, $invoice);
-                $mapped = $mapper->map($invoice, $direction, $vatTypes, $paymentMethods, $identity);
+                $identity = $resolver->resolve($api, $companyId, $invoice);
+                $direction = $identity['direction'];
                 $blockedReason = null;
 
-                if (! ($identity['seller_company_match']['matched'] ?? false) && ! ($identity['buyer_company_match']['matched'] ?? false)) {
+                if ($direction === null) {
                     $blockedReason = 'This XML does not belong to the selected company: neither CedentePrestatore nor CessionarioCommittente matches it.';
                 }
+
+                $mapped = $direction !== null
+                    ? $mapper->map($invoice, $direction, $vatTypes, $paymentMethods, $identity)
+                    : ['warnings' => $identity['warnings'], 'summary' => [], 'payload' => []];
 
                 $plans[] = [
                     'status' => $blockedReason === null ? 'ready' : 'blocked',
                     'file' => $file,
                     'file_name' => basename($file),
+                    'direction' => $direction,
                     'source_format' => $invoice['source_format'] ?? 'xml',
                     'attachments' => $invoice['attachments'] ?? [],
                     'warnings' => $mapped['warnings'],
@@ -109,7 +105,7 @@ class EInvoiceImportCommand extends Command
         }
 
         if ($this->option('json')) {
-            $this->line(json_encode($this->jsonSummary($companyId, $direction, $plans), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $this->line(json_encode($this->jsonSummary($companyId, $plans), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
             return $this->hasImportablePlans($plans) ? self::SUCCESS : self::FAILURE;
         }
@@ -143,7 +139,7 @@ class EInvoiceImportCommand extends Command
         $results = [];
 
         foreach ($readyPlans as $plan) {
-            $results[] = $this->importPlan($api, (int) $companyId, $direction, $plan);
+            $results[] = $this->importPlan($api, (int) $companyId, $plan['direction'], $plan);
         }
 
         $this->renderResultTable($results);
@@ -257,11 +253,10 @@ class EInvoiceImportCommand extends Command
      * @param  array<int, array<string, mixed>>  $plans
      * @return array<string, mixed>
      */
-    protected function jsonSummary(int|string $companyId, string $direction, array $plans): array
+    protected function jsonSummary(int|string $companyId, array $plans): array
     {
         return [
             'company_id' => $companyId,
-            'direction' => $direction,
             'dry_run' => (bool) $this->option('dry-run'),
             'documents' => $plans,
         ];

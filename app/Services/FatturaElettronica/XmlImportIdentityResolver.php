@@ -7,40 +7,65 @@ use RuntimeException;
 
 class XmlImportIdentityResolver
 {
+    private const SELF_INVOICE_TYPES = [
+        'TD16', 'TD17', 'TD18', 'TD19', 'TD20', 'TD21', 'TD22', 'TD23', 'TD28', 'TD29',
+    ];
+
     /**
      * @return array<string, mixed>
      */
-    public function resolve(FicApiClient $api, int|string $companyId, string $direction, array $invoice): array
+    public function resolve(FicApiClient $api, int|string $companyId, array $invoice): array
     {
         $company = $this->loadSelectedCompany($api, $companyId);
         $sellerMatch = $this->matchPartyToCompany($invoice['seller'] ?? [], $company);
         $buyerMatch = $this->matchPartyToCompany($invoice['buyer'] ?? [], $company);
+        $warnings = [];
+        $direction = $this->inferDirection($sellerMatch, $buyerMatch, $invoice['document_type_code'] ?? '', $warnings);
         $entityType = $direction === 'issued' ? 'client' : 'supplier';
         $counterparty = $direction === 'issued' ? ($invoice['buyer'] ?? []) : ($invoice['seller'] ?? []);
-        $entityMatch = $this->matchExistingEntity($api, $companyId, $entityType, $counterparty);
-        $warnings = [];
-        $expectedDirection = null;
-
-        if (($sellerMatch['matched'] ?? false) && ! ($buyerMatch['matched'] ?? false)) {
-            $expectedDirection = 'issued';
-        } elseif (($buyerMatch['matched'] ?? false) && ! ($sellerMatch['matched'] ?? false)) {
-            $expectedDirection = 'received';
-        }
-
-        if (! ($sellerMatch['matched'] ?? false) && ! ($buyerMatch['matched'] ?? false)) {
-            $warnings[] = 'Neither CedentePrestatore nor CessionarioCommittente matches the selected company.';
-        } elseif ($expectedDirection !== null && $expectedDirection !== $direction) {
-            $warnings[] = "The XML looks like a {$expectedDirection} document for the selected company, but {$direction} was requested.";
-        }
+        $entityMatch = $direction !== null
+            ? $this->matchExistingEntity($api, $companyId, $entityType, $counterparty)
+            : null;
 
         return [
             'company' => $company,
             'seller_company_match' => $sellerMatch,
             'buyer_company_match' => $buyerMatch,
-            'expected_direction' => $expectedDirection,
+            'direction' => $direction,
+            'expected_direction' => $direction,
             'entity_match' => $entityMatch,
             'warnings' => $warnings,
         ];
+    }
+
+    /**
+     * @param  array<int, string>  $warnings
+     */
+    protected function inferDirection(array $sellerMatch, array $buyerMatch, string $documentTypeCode, array &$warnings): ?string
+    {
+        $sellerMatched = $sellerMatch['matched'] ?? false;
+        $buyerMatched = $buyerMatch['matched'] ?? false;
+
+        if (! $sellerMatched && ! $buyerMatched) {
+            $warnings[] = 'Neither CedentePrestatore nor CessionarioCommittente matches the selected company.';
+
+            return null;
+        }
+
+        if ($sellerMatched && ! $buyerMatched) {
+            return 'issued';
+        }
+
+        if ($buyerMatched && ! $sellerMatched) {
+            if (in_array($documentTypeCode, self::SELF_INVOICE_TYPES, true)) {
+                return 'issued';
+            }
+
+            return 'received';
+        }
+
+        // Both match — default to issued
+        return 'issued';
     }
 
     /**

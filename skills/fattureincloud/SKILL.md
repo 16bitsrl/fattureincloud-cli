@@ -261,16 +261,14 @@ fic einvoice:import /absolute/path/to/fattura.xml --company-id=COMPANY_ID --dry-
 # Preview a signed XML.p7m file
 fic einvoice:import /absolute/path/to/fattura.xml.p7m --company-id=COMPANY_ID --dry-run
 
-# Import a folder of outgoing XML files
-fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --direction=issued --yes
-
-# Import supplier XML files as received documents
-fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --direction=received --yes
+# Import a folder of XML files (direction is auto-detected from XML content)
+fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --yes
 ```
 
 Important notes:
 
 - The CLI parses FatturaPA XML and recreates the document through the API
+- Direction (issued/received) is automatically inferred from the XML: if the seller matches the company it is issued, if the buyer matches the company it is received, and self-invoice types (TD16-TD23, TD28, TD29) where the buyer is the company are treated as issued
 - For issued XML imports, the recreated document should be an electronic invoice by default
 - For received XML imports, treat electronic XML as the default case too, but remember that received documents can also come from non-electronic sources like receipts, foreign invoices, or scanned paper documents
 - A recap is shown before import, and `--dry-run` is available for validation
