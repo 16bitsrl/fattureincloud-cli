@@ -130,6 +130,43 @@ class EInvoiceImportCommand extends Command
             return self::FAILURE;
         }
 
+        foreach ($readyPlans as &$plan) {
+            if (! ($plan['summary']['needs_exchange_rate'] ?? false)) {
+                continue;
+            }
+
+            $currency = $plan['summary']['currency'];
+            $total = $plan['summary']['total'] ?? '?';
+            $file = $plan['summary']['file'] ?? 'unknown';
+
+            $this->newLine();
+            $this->warn("File {$file} uses currency {$currency} (total: {$total} {$currency}).");
+            $this->line('Exchange rate is required (EUR to '.$currency.').');
+            $this->line('  Lookup rates at: <href=https://tassidicambio.bancaditalia.it/terzevalute-wf-ui-web/converter>https://tassidicambio.bancaditalia.it/terzevalute-wf-ui-web/converter</>');
+
+            $method = $this->choice(
+                'How do you want to provide the exchange rate?',
+                [
+                    'Enter exchange rate directly',
+                    'Calculate from EUR equivalent amount',
+                ],
+                0
+            );
+
+            if ($method === 'Enter exchange rate directly') {
+                $rate = $this->ask("Exchange rate (EUR to {$currency})", '1');
+            } else {
+                $eurAmount = $this->ask("EUR equivalent amount for {$total} {$currency}");
+                $rate = (float) $eurAmount > 0
+                    ? (string) round((float) $total / (float) $eurAmount, 6)
+                    : '1';
+                $this->info("Calculated exchange rate: {$rate}");
+            }
+
+            $plan['payload']['data']['currency']['exchange_rate'] = $rate;
+        }
+        unset($plan);
+
         if (! $this->option('yes') && ! $this->confirm('Proceed with the import?', true)) {
             $this->warn('Import cancelled.');
 

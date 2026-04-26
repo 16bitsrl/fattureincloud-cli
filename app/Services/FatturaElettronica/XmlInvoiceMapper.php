@@ -49,7 +49,8 @@ class XmlInvoiceMapper
         }
 
         $invoiceDate = $invoice['document_date'] ?? null;
-        $payments = $this->mapPayments($invoice['payments'] ?? [], $paymentMethods, $invoiceDate);
+        $totalAmount = $invoice['total_amount'] ?? null;
+        $payments = $this->mapPayments($invoice['payments'] ?? [], $paymentMethods, $invoiceDate, $totalAmount, $warnings);
         $number = $direction === 'issued'
             ? $this->splitIssuedNumber((string) ($invoice['document_number'] ?? ''))
             : null;
@@ -68,9 +69,10 @@ class XmlInvoiceMapper
             'type' => $apiType,
             'entity' => $this->mapEntity($entity, $invoice, $direction, $identity),
             'date' => $invoice['document_date'] ?? null,
-            'currency' => [
-                'id' => $invoice['currency'] ?? 'EUR',
-            ],
+            'currency' => ($invoice['currency'] ?? 'EUR') !== 'EUR' ? [
+                'id' => $invoice['currency'],
+                'exchange_rate' => $invoice['currency_exchange_rate'] ?? '1',
+            ] : null,
             'subject' => $this->subjectFromInvoice($invoice),
             'notes' => $this->notesFromInvoice($invoice),
             'items_list' => $items,
@@ -114,6 +116,7 @@ class XmlInvoiceMapper
                 'counterparty' => $entity['name'] ?? '',
                 'total' => $invoice['total_amount'] ?? null,
                 'currency' => $invoice['currency'] ?? 'EUR',
+                'needs_exchange_rate' => ($invoice['currency'] ?? 'EUR') !== 'EUR',
                 'seller_name' => $invoice['seller']['name'] ?? null,
                 'seller_vat' => $invoice['seller']['vat_number'] ?? null,
                 'seller_tax_code' => $invoice['seller']['tax_code'] ?? null,
@@ -192,6 +195,7 @@ class XmlInvoiceMapper
     }
 
     /**
+     * @param  array<string, mixed>  $invoice
      * @param  array<int, array<string, mixed>>  $payments
      * @param  array<int, array<string, mixed>>  $paymentMethods
      * @return array<string, mixed>
@@ -217,6 +221,52 @@ class XmlInvoiceMapper
             'invoice_number' => $invoice['document_number'] ?? null,
             'invoice_date' => $invoice['document_date'] ?? null,
         ], fn ($value) => $value !== null && $value !== '');
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $payments
+     * @param  array<int, array<string, mixed>>  $paymentMethods
+     * @param  array<int, string>  $warnings
+     * @return array<int, array<string, mixed>>
+     */
+    protected function mapPayments(array $payments, array $paymentMethods, ?string $invoiceDate = null, ?string $totalAmount = null, array &$warnings = []): array
+    {
+        $mapped = [];
+        $isSinglePayment = count($payments) === 1;
+
+        // Detect mismatch between XML payment total and document total
+        if ($totalAmount !== null && $payments !== []) {
+            $paymentSum = 0.0;
+            foreach ($payments as $payment) {
+                $paymentSum += (float) ($payment['amount'] ?? 0);
+            }
+            $documentTotal = (float) $totalAmount;
+
+            if (abs($paymentSum - $documentTotal) > 0.01) {
+                $warnings[] = "Payment total from XML ({$paymentSum}) differs from document total ({$documentTotal}); payment amount omitted to let Fatture in Cloud auto-calculate.";
+            }
+        }
+
+        foreach ($payments as $payment) {
+            $paymentMethod = $this->matchPaymentMethod((string) ($payment['method_code'] ?? ''), $paymentMethods);
+
+            $dueDate = ! empty($payment['due_date']) ? $payment['due_date'] : $invoiceDate;
+
+            // For single payments, omit amount so FIC auto-calculates from items_list
+            // to avoid rounding mismatches between XML ImportoPagamento and FIC totals
+            $amount = $isSinglePayment ? null : ($payment['amount'] ?? null);
+
+            $mapped[] = array_filter([
+                'due_date' => $dueDate,
+                'amount' => $amount,
+                'payment_account' => $paymentMethod['default_payment_account'] ?? null,
+                'payment_terms' => isset($payment['due_date']) ? ['type' => 'standard'] : null,
+                'status' => 'not_paid',
+                'ei_raw' => $payment['raw'] ?? null,
+            ], fn ($value) => $value !== null && $value !== '');
+        }
+
+        return $mapped;
     }
 
     /**
@@ -272,33 +322,6 @@ class XmlInvoiceMapper
             'cassa_taxable' => $taxablePercent,
             'ei_cassa_type' => $firstContribution['type'] ?? null,
         ], fn ($value) => $value !== null && $value !== '');
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>  $payments
-     * @param  array<int, array<string, mixed>>  $paymentMethods
-     * @return array<int, array<string, mixed>>
-     */
-    protected function mapPayments(array $payments, array $paymentMethods, ?string $invoiceDate = null): array
-    {
-        $mapped = [];
-
-        foreach ($payments as $payment) {
-            $paymentMethod = $this->matchPaymentMethod((string) ($payment['method_code'] ?? ''), $paymentMethods);
-
-            $dueDate = ! empty($payment['due_date']) ? $payment['due_date'] : $invoiceDate;
-
-            $mapped[] = array_filter([
-                'due_date' => $dueDate,
-                'amount' => $payment['amount'] ?? null,
-                'payment_account' => $paymentMethod['default_payment_account'] ?? null,
-                'payment_terms' => isset($payment['due_date']) ? ['type' => 'standard'] : null,
-                'status' => 'not_paid',
-                'ei_raw' => $payment['raw'] ?? null,
-            ], fn ($value) => $value !== null && $value !== '');
-        }
-
-        return $mapped;
     }
 
     /**

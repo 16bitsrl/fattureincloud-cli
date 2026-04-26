@@ -2,7 +2,7 @@
 
 return [
     'name' => 'fic',
-    'version' => '1.0.1',
+    'version' => '1.0.3',
     'env' => 'development',
     'providers' => [
         0 => 'App\\Providers\\AppServiceProvider',
