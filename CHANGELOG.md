@@ -30,6 +30,19 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - The payment-mismatch warning no longer claims amounts were omitted for multi-installment imports
 - Year-first invoice numbers (for example `2026/15`) now produce a warning about the number/numeration split
 
+## [1.0.3] - 2026-04-26
+
+> Note: this entry was added retroactively. The `v1.0.3` tag was created manually without the release script, so the repository at that tag still reports `1.0.2` in `VERSION`, `builds/fic`, and the skill metadata; the published release assets are versioned correctly because CI builds from the tag name.
+
+### Fixed
+
+- EUR invoices are no longer given a spurious `currency` block in the import payload
+- Mismatches between the XML payment total and the document total are detected and reported, letting Fatture in Cloud auto-calculate single-payment amounts
+
+### Added
+
+- Interactive exchange-rate prompt for non-EUR XML imports
+
 ## [1.0.2] - 2026-03-22
 
 ### Changed
