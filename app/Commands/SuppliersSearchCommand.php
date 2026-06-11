@@ -77,7 +77,7 @@ class SuppliersSearchCommand extends Command
         }
 
         $this->table(['ID', 'Name', 'VAT number', 'Tax code', 'City', 'Email'], $rows);
-        $this->line('Total: '.($payload['total'] ?? count($rows)));
+        $this->line('Results: '.count($rows));
 
         return self::SUCCESS;
     }

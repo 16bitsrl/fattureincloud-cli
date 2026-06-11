@@ -12,6 +12,13 @@ class XmlImportIdentityResolver
     ];
 
     /**
+     * Memoized company list, so folder imports don't refetch it per file.
+     *
+     * @var array<int, array<string, mixed>>|null
+     */
+    protected ?array $companies = null;
+
+    /**
      * @return array<string, mixed>
      */
     public function resolve(FicApiClient $api, int|string $companyId, array $invoice): array
@@ -73,6 +80,27 @@ class XmlImportIdentityResolver
      */
     protected function loadSelectedCompany(FicApiClient $api, int|string $companyId): array
     {
+        $this->companies ??= $this->fetchCompanies($api);
+
+        foreach ($this->companies as $company) {
+            if ((string) ($company['id'] ?? '') === (string) $companyId) {
+                return $company;
+            }
+        }
+
+        return [
+            'id' => $companyId,
+            'name' => null,
+            'vat_number' => null,
+            'tax_code' => null,
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function fetchCompanies(FicApiClient $api): array
+    {
         $response = $api->get('/user/companies');
 
         if ($response->failed()) {
@@ -95,18 +123,7 @@ class XmlImportIdentityResolver
             }
         }
 
-        foreach ($companies as $company) {
-            if ((string) ($company['id'] ?? '') === (string) $companyId) {
-                return $company;
-            }
-        }
-
-        return [
-            'id' => $companyId,
-            'name' => null,
-            'vat_number' => null,
-            'tax_code' => null,
-        ];
+        return $companies;
     }
 
     /**
@@ -283,6 +300,8 @@ class XmlImportIdentityResolver
 
     protected function escapeQueryValue(string $value): string
     {
-        return str_replace("'", "\\'", $value);
+        // The Fatture in Cloud query syntax escapes single quotes by doubling
+        // them; a backslash escape is rejected with "Invalid query syntax".
+        return str_replace("'", "''", $value);
     }
 }

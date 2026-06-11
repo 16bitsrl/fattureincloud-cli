@@ -12,7 +12,7 @@ class FicApiClient
         protected ?string $token = null,
         protected int $maxAttempts = 5,
     ) {
-        $this->token ??= TokenStore::getAccessToken();
+        $this->token ??= TokenRefresher::freshAccessToken();
     }
 
     public function get(string $uri, array $query = []): Response

@@ -24,7 +24,13 @@ class XmlInvoiceParser
         $document = new DOMDocument;
         $document->preserveWhiteSpace = false;
 
-        if (! @$document->load($xmlPath)) {
+        $loaded = @$document->load($xmlPath);
+
+        if ($xmlPath !== $path) {
+            @unlink($xmlPath);
+        }
+
+        if (! $loaded) {
             throw new RuntimeException("Unable to parse XML file: {$path}");
         }
 

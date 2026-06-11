@@ -47,8 +47,13 @@ fic api:send-e-invoice --company-id=COMPANY_ID --document-id=NEW_DOC_ID
 ## Check unpaid invoices
 
 ```bash
-# List all invoices, then filter for unpaid
-fic api:list-issued-documents --company-id=COMPANY_ID --type=invoice --json | jq '.data[] | select(.is_marked == false)'
+# Invoices with at least one unpaid installment (payments_list requires --fieldset=detailed)
+fic api:list-issued-documents --company-id=COMPANY_ID --type=invoice --fieldset=detailed --json \
+  | jq '.data[] | select(any(.payments_list[]?; .status == "not_paid"))'
+
+# Overdue invoices (next due date in the past)
+fic api:list-issued-documents --company-id=COMPANY_ID --type=invoice \
+  --q="next_due_date < '2026-06-11'" --json
 ```
 
 ## Onboard a new client
@@ -116,8 +121,8 @@ fic api:list-issued-documents --company-id=COMPANY_ID --type=invoice \
 ## Monthly financial summary
 
 ```bash
-# Get receipts monthly totals
-fic api:get-receipts-monthly-totals --company-id=COMPANY_ID --type=monthly --year=2025 --json
+# Get receipts monthly totals (type is sales_receipt or till_receipt)
+fic api:get-receipts-monthly-totals --company-id=COMPANY_ID --type=sales_receipt --year=2025 --json
 
 # Get cashbook entries for the month (cashbook supports --date-from/--date-to)
 fic api:list-cashbook-entries --company-id=COMPANY_ID --date-from=2025-03-01 --date-to=2025-03-31 --json
@@ -211,64 +216,13 @@ fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --dry-run
 
 # Import XML files (direction is auto-detected from XML content)
 fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --yes
+
+# Non-EUR documents need an exchange rate when running non-interactively
+fic einvoice:import /absolute/path/to/fattura-usd.xml --company-id=COMPANY_ID --yes --exchange-rate=1.0823
+
+# Machine-readable import (requires --yes; outputs plan and results as JSON)
+fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --yes --json
 ```
-
-## Reverse charge lifecycle (inversione contabile)
-
-When a supplier invoice has VAT with Natura N6.x (reverse charge), the buyer must
-integrate the VAT by creating a self-invoice. The full lifecycle on FIC is:
-
-1. **Register the received invoice** — The supplier's TD01 arrives with 0% VAT / Natura N6.x.
-   Register it as a received document (fattura passiva) on FIC.
-2. **Create a self-invoice (autofattura TD16)** — The buyer creates an issued document of type
-   `self_supplier_invoice` that mirrors the original amounts but applies the correct VAT rate
-   (e.g. 22%). This document references the original via `DatiFattureCollegate`.
-   On FIC this is an issued document with `ei_type: TD16`.
-3. **Send the self-invoice to SDI** — The TD16 is transmitted to SDI.
-   `SoggettoEmittente` will be `CC` (cessionario/committente).
-4. **SDI delivers back the self-invoice** — SDI sends the TD16 back as an incoming e-invoice.
-   This appears as a new received e-invoice on FIC. It should be matched/linked to the
-   original received document from step 1 (it is effectively a duplicate).
-
-### Direction inference for each step
-
-- **Step 1** (TD01, seller != company, buyer == company): direction = `received`
-- **Step 2** (TD16, seller == company, buyer == company): direction = `issued` (self-invoice type)
-- **Step 4** (TD01 from SDI, same as step 1): direction = `received`
-
-The `einvoice:import` command auto-detects direction correctly for all three steps.
-
-### Common Natura codes for reverse charge
-
-| Natura | Description |
-|--------|-------------|
-| N6.1 | Cessione di rottami e materiali di recupero |
-| N6.2 | Cessione di oro e argento |
-| N6.3 | Subappalto nel settore edile |
-| N6.4 | Cessione di fabbricati |
-| N6.5 | Cessione di telefoni cellulari |
-| N6.6 | Cessione di prodotti elettronici |
-| N6.7 | Prestazioni comparto edile e settori connessi |
-| N6.8 | Operazioni settore energetico |
-| N6.9 | Altri casi |
-
-### Self-invoice document types (autofatture)
-
-These TD types indicate self-invoices. When both seller and buyer match the company,
-the `einvoice:import` command treats them as `issued`:
-
-| TD type | Description |
-|---------|-------------|
-| TD16 | Integrazione fattura reverse charge interno |
-| TD17 | Integrazione/autofattura per acquisto servizi dall'estero |
-| TD18 | Integrazione per acquisto di beni intracomunitari |
-| TD19 | Integrazione/autofattura per acquisto di beni ex art.17 c.2 DPR 633/72 |
-| TD20 | Autofattura per regolarizzazione e integrazione |
-| TD21 | Autofattura per splafonamento |
-| TD22 | Estrazione beni da deposito IVA |
-| TD23 | Estrazione beni da deposito IVA con versamento IVA |
-| TD28 | Acquisti da San Marino con IVA (fattura cartacea) |
-| TD29 | Acquisti da San Marino senza IVA (fattura cartacea) |
 
 ## Reverse charge lifecycle (inversione contabile)
 

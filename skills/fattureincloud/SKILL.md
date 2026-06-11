@@ -24,6 +24,7 @@ Check status with: `fic auth:status --json`
 
 - `references/api-basics.md` - filtering, sorting, pagination, and response customization
 - `references/faqs-and-troubleshooting.md` - API limitations, classic FAQ answers, errors, and quotas
+- `references/workflows.md` - detailed multi-step workflows (invoicing, attachments, reverse charge, ...)
 - `references/xml-import.md` - XML import strategy, mapping behavior, and V.2025 notes
 
 ## Authentication
@@ -42,7 +43,8 @@ fic auth:login --client-id=ID --client-secret=SECRET
 fic auth:status
 fic auth:status --json
 
-# Refresh OAuth token
+# Refresh OAuth token manually (expired OAuth tokens are also refreshed
+# automatically before API calls when client credentials are stored)
 fic auth:refresh
 
 # Logout
@@ -91,11 +93,10 @@ fic api:list-products --company-id=COMPANY_ID --q="name like '%consulting%'" --j
 
 All API commands support multiple output formats:
 
-- **Default (JSON)**: Pretty-printed JSON (best for agents)
+- **Default (JSON)**: Pretty-printed JSON (best for agents); the `--json` flag is accepted but redundant
 - `--yaml`: YAML output
 - `--minify`: Compact single-line JSON (best for piping)
 - `--headers`: Include HTTP response headers
-- Human-readable tables are shown for list endpoints when not using --json/--yaml
 
 ## Filtering with `--q` (query syntax)
 
@@ -263,6 +264,13 @@ fic einvoice:import /absolute/path/to/fattura.xml.p7m --company-id=COMPANY_ID --
 
 # Import a folder of XML files (direction is auto-detected from XML content)
 fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --yes
+
+# Machine-readable preview / import
+fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --dry-run --json
+fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --yes --json
+
+# Non-EUR documents: pass the EUR exchange rate when running non-interactively
+fic einvoice:import /absolute/path/to/fattura-usd.xml --company-id=COMPANY_ID --yes --exchange-rate=1.0823
 ```
 
 Important notes:
@@ -272,6 +280,8 @@ Important notes:
 - For issued XML imports, the recreated document should be an electronic invoice by default
 - For received XML imports, treat electronic XML as the default case too, but remember that received documents can also come from non-electronic sources like receipts, foreign invoices, or scanned paper documents
 - A recap is shown before import, and `--dry-run` is available for validation
+- `--json` with `--dry-run` prints the plan; importing with `--json` requires `--yes` and prints plan plus results
+- Non-EUR documents require an exchange rate: with `--yes`/`--json` pass `--exchange-rate=` (applied to all non-EUR files), otherwise the CLI prompts interactively
 - Signed `.xml.p7m` files are supported and unpacked before import
 - XML attachments are carried over too; if there are multiple embedded attachments, they are bundled into a zip because Fatture in Cloud exposes one structured attachment slot (`attachment_token`)
 - The import preserves XML-specific sections in `ei_raw`

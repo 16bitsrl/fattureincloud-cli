@@ -76,7 +76,7 @@ class ProductsSearchCommand extends Command
         }
 
         $this->table(['ID', 'Name', 'Code', 'Category', 'Net price', 'Stock'], $rows);
-        $this->line('Total: '.($payload['total'] ?? count($rows)));
+        $this->line('Results: '.count($rows));
 
         return self::SUCCESS;
     }

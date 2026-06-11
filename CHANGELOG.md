@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning from `1.0.1` onward.
 
+## [1.1.0] - 2026-06-11
+
+### Added
+
+- `einvoice:import --exchange-rate=` option for non-EUR documents in non-interactive runs (`--yes`/`--json`)
+- Expired OAuth access tokens are now refreshed automatically before API calls when client credentials are stored (`expires_at` is tracked in `auth.json`)
+- OAuth login now also requests the `receipts`, `emails:r`, `calendar`, and `stock` scopes
+- Failed attachment uploads during XML import are now reported instead of being silently skipped
+
+### Changed
+
+- `einvoice:import --json` without `--dry-run` now actually imports (requires `--yes`) and outputs plan plus results; previously it always behaved as a dry run
+- Removed the spec normalization layer: `spatie/laravel-openapi-cli` >= 1.1 merges path-level parameters natively (upstreamed in spatie/laravel-openapi-cli#3)
+- `clients:search` / `suppliers:search` / `products:search` now report the merged result count instead of a misleading `total`
+- `XDG_CONFIG_HOME` is now respected for the config directory location on Unix-like systems
+
+### Fixed
+
+- Single quotes in XML import entity-matching queries are now escaped by doubling them, as required by the Fatture in Cloud query syntax (backslash escaping was rejected by the API)
+- `clear-cache` now clears the spec cache directory it documented (`~/.config/fattureincloud-cli/cache`)
+- The browser is now opened correctly on Windows during OAuth login
+- Folder XML imports no longer refetch the company list once per file
+- Temporary files created for `.p7m` extraction and attachment uploads are now cleaned up
+- The payment-mismatch warning no longer claims amounts were omitted for multi-installment imports
+- Year-first invoice numbers (for example `2026/15`) now produce a warning about the number/numeration split
+
 ## [1.0.2] - 2026-03-22
 
 ### Changed

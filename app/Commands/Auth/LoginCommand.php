@@ -109,11 +109,15 @@ class LoginCommand extends Command
             'issued_documents.proformas:r', 'issued_documents.proformas:a',
             'issued_documents.delivery_notes:r', 'issued_documents.delivery_notes:a',
             'received_documents:r', 'received_documents:a',
+            'receipts:r', 'receipts:a',
             'taxes:r', 'taxes:a',
             'archive:r', 'archive:a',
             'cashbook:r', 'cashbook:a',
             'settings:r', 'settings:a',
             'situation:r',
+            'emails:r',
+            'calendar:r', 'calendar:a',
+            'stock:r', 'stock:a',
         ]);
 
         $state = bin2hex(random_bytes(16));
@@ -130,11 +134,12 @@ class LoginCommand extends Command
         $this->line($authUrl);
         $this->newLine();
 
-        // Try to open browser
+        // Try to open browser (cmd.exe ignores single quotes, so Windows needs
+        // double quotes plus an empty title argument for `start`)
         match (PHP_OS_FAMILY) {
-            'Darwin' => exec("open '{$authUrl}'"),
-            'Linux' => exec("xdg-open '{$authUrl}'"),
-            'Windows' => exec("start '{$authUrl}'"),
+            'Darwin' => exec('open '.escapeshellarg($authUrl)),
+            'Linux' => exec('xdg-open '.escapeshellarg($authUrl)),
+            'Windows' => exec('start "" "'.$authUrl.'"'),
             default => null,
         };
 

@@ -7,13 +7,15 @@ use Illuminate\Support\Facades\Artisan;
 class PlainTextSearch
 {
     /**
+     * Merges the results of one paginated query per field. The count refers
+     * to the merged page, so more matches may exist on later pages.
+     *
      * @param  list<string>  $queries
-     * @return array{data: array<int, array<string, mixed>>, total: int}|null
+     * @return array{data: array<int, array<string, mixed>>, count: int}|null
      */
     public static function run(string $command, int|string $companyId, int $page, int $perPage, array $queries): ?array
     {
         $items = [];
-        $total = 0;
 
         foreach ($queries as $query) {
             $payload = static::runQuery($command, $companyId, $page, $perPage, $query);
@@ -29,13 +31,11 @@ class PlainTextSearch
 
                 $items[$item['id']] = $item;
             }
-
-            $total = max($total, (int) ($payload['total'] ?? 0));
         }
 
         return [
             'data' => array_values($items),
-            'total' => count($items) ?: $total,
+            'count' => count($items),
         ];
     }
 

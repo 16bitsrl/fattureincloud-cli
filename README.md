@@ -14,10 +14,7 @@ composer global require 16bitsrl/fattureincloud-cli
 
 ### Static binaries
 
-Each release also ships static builds for Linux, macOS, and Windows.
-
-- Download them from the GitHub release assets
-- Or inspect the local examples in `builds/static/`
+Each release also ships static builds for Linux, macOS, and Windows: download them from the GitHub release assets.
 
 After download, make the binary executable on Unix-like systems:
 
@@ -105,10 +102,6 @@ fic api:send-e-invoice --company-id=12345 --document-id=99
 | User | info, companies |
 | Companies | info, plan usage |
 
-## Agent skill
-
-See the dedicated section above.
-
 ## Testing
 
 ```bash
@@ -148,7 +141,7 @@ Users install or update with `composer global require 16bitsrl/fattureincloud-cl
 ```bash
 ./bin/update-spec.sh              # latest from master
 ./bin/update-spec.sh v2.1.8       # specific tag
-fic clear-cache                   # clear cached normalized spec
+fic clear-cache                   # clear cached spec and temporary files
 ```
 
 ## Credits

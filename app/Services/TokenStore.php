@@ -12,12 +12,15 @@ class TokenStore
             return static::$configDir;
         }
 
-        $home = match (true) {
-            PHP_OS_FAMILY === 'Windows' => getenv('USERPROFILE') ?: getenv('HOMEDRIVE').getenv('HOMEPATH'),
-            default => getenv('HOME') ?: getenv('XDG_CONFIG_HOME') ?: '/tmp',
-        };
+        if (PHP_OS_FAMILY === 'Windows') {
+            $home = getenv('USERPROFILE') ?: getenv('HOMEDRIVE').getenv('HOMEPATH');
+            $base = rtrim($home, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'.config';
+        } else {
+            $base = getenv('XDG_CONFIG_HOME')
+                ?: rtrim(getenv('HOME') ?: sys_get_temp_dir(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'.config';
+        }
 
-        $dir = rtrim($home, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'.config'.DIRECTORY_SEPARATOR.'fattureincloud-cli';
+        $dir = rtrim($base, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'fattureincloud-cli';
 
         if (! is_dir($dir)) {
             mkdir($dir, 0700, true);
@@ -43,6 +46,10 @@ class TokenStore
 
     public static function save(array $data): void
     {
+        if (is_numeric($data['expires_in'] ?? null) && ! isset($data['expires_at'])) {
+            $data['expires_at'] = time() + (int) $data['expires_in'];
+        }
+
         $existing = static::load();
         $merged = array_merge($existing, $data);
 

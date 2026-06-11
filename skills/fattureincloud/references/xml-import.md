@@ -38,6 +38,12 @@ fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --yes
 
 # Machine-readable planning output
 fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --dry-run --json
+
+# Machine-readable import (requires --yes; outputs plan and results)
+fic einvoice:import /absolute/path/to/xml-dir --company-id=COMPANY_ID --yes --json
+
+# Non-EUR documents need an exchange rate when running non-interactively
+fic einvoice:import /absolute/path/to/fattura-usd.xml --company-id=COMPANY_ID --yes --exchange-rate=1.0823
 ```
 
 The dry run should surface recognition details such as whether the selected company appears as seller or buyer, whether an existing client or supplier was matched, how many VAT rows were mapped cleanly, and whether references or attachments were recognized.
@@ -68,6 +74,7 @@ In Italy, e-invoices are the normal case for XML documents.
 
 ## Caveats
 
+- `--exchange-rate` applies the same rate to every non-EUR file in the batch; import mixed-currency folders in separate runs
 - if an invoice number cannot be split into numeric `number` plus textual `numeration`, the CLI warns and lets Fatture in Cloud assign the numeric part for issued documents
 - only the first `FatturaElettronicaBody` block is imported
 - direct SDI submission still depends on the recreated document passing Fatture in Cloud validation

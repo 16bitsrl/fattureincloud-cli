@@ -20,6 +20,7 @@ class EInvoiceImportCommand extends Command
         {--company-id= : Company ID (defaults to configured company)}
         {--dry-run : Parse and preview without creating documents}
         {--yes : Skip confirmation prompt}
+        {--exchange-rate= : EUR exchange rate applied to all non-EUR documents (required with --yes/--json)}
         {--json : Output machine-readable JSON}';
 
     protected $description = 'Import one or more fattura elettronica XML files by recreating them through the API';
@@ -104,22 +105,25 @@ class EInvoiceImportCommand extends Command
             }
         }
 
-        if ($this->option('json')) {
-            $this->line(json_encode($this->jsonSummary($companyId, $plans), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-
-            return $this->hasImportablePlans($plans) ? self::SUCCESS : self::FAILURE;
-        }
-
-        if (count($plans) === 1) {
-            $this->renderSinglePlan($plans[0]);
-        } else {
-            $this->renderPlanTable($plans);
-        }
-
         if ($this->option('dry-run')) {
-            $this->info('Dry run completed. No documents were created.');
+            if ($this->option('json')) {
+                $this->line(json_encode($this->jsonSummary($companyId, $plans), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            } else {
+                $this->renderPlans($plans);
+                $this->info('Dry run completed. No documents were created.');
+            }
 
             return $this->hasImportablePlans($plans) ? self::SUCCESS : self::FAILURE;
+        }
+
+        if ($this->option('json') && ! $this->option('yes')) {
+            $this->error('Importing with --json requires --yes. Add --dry-run for a preview instead.');
+
+            return self::FAILURE;
+        }
+
+        if (! $this->option('json')) {
+            $this->renderPlans($plans);
         }
 
         $readyPlans = array_values(array_filter($plans, fn (array $plan) => $plan['status'] === 'ready'));
@@ -130,8 +134,61 @@ class EInvoiceImportCommand extends Command
             return self::FAILURE;
         }
 
+        if (! $this->resolveExchangeRates($readyPlans)) {
+            return self::FAILURE;
+        }
+
+        if (! $this->option('yes') && ! $this->confirm('Proceed with the import?', true)) {
+            $this->warn('Import cancelled.');
+
+            return self::FAILURE;
+        }
+
+        $results = [];
+
+        foreach ($readyPlans as $plan) {
+            $results[] = $this->importPlan($api, (int) $companyId, $plan['direction'], $plan);
+        }
+
+        if ($this->option('json')) {
+            $this->line(json_encode(
+                $this->jsonSummary($companyId, $plans) + ['results' => $results],
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
+            ));
+        } else {
+            $this->renderResultTable($results);
+        }
+
+        return collect($results)->contains(fn (array $result) => $result['status'] !== 'imported')
+            ? self::FAILURE
+            : self::SUCCESS;
+    }
+
+    /**
+     * Fill in the exchange rate for non-EUR plans, prompting when interactive.
+     * Returns false when a required rate is missing in non-interactive mode.
+     *
+     * @param  array<int, array<string, mixed>>  $readyPlans
+     */
+    protected function resolveExchangeRates(array &$readyPlans): bool
+    {
+        $optionRate = $this->option('exchange-rate');
+        $missing = [];
+
         foreach ($readyPlans as &$plan) {
             if (! ($plan['summary']['needs_exchange_rate'] ?? false)) {
+                continue;
+            }
+
+            if ($optionRate) {
+                $plan['payload']['data']['currency']['exchange_rate'] = (string) $optionRate;
+
+                continue;
+            }
+
+            if ($this->option('yes') || $this->option('json')) {
+                $missing[] = $plan['file_name'];
+
                 continue;
             }
 
@@ -167,23 +224,25 @@ class EInvoiceImportCommand extends Command
         }
         unset($plan);
 
-        if (! $this->option('yes') && ! $this->confirm('Proceed with the import?', true)) {
-            $this->warn('Import cancelled.');
+        if ($missing !== []) {
+            $this->error('Exchange rate required for non-EUR files: '.implode(', ', $missing).'. Pass it with --exchange-rate.');
 
-            return self::FAILURE;
+            return false;
         }
 
-        $results = [];
+        return true;
+    }
 
-        foreach ($readyPlans as $plan) {
-            $results[] = $this->importPlan($api, (int) $companyId, $plan['direction'], $plan);
+    /**
+     * @param  array<int, array<string, mixed>>  $plans
+     */
+    protected function renderPlans(array $plans): void
+    {
+        if (count($plans) === 1) {
+            $this->renderSinglePlan($plans[0]);
+        } else {
+            $this->renderPlanTable($plans);
         }
-
-        $this->renderResultTable($results);
-
-        return collect($results)->contains(fn (array $result) => $result['status'] !== 'imported')
-            ? self::FAILURE
-            : self::SUCCESS;
     }
 
     /**
@@ -244,6 +303,7 @@ class EInvoiceImportCommand extends Command
         $payload = $plan['payload'];
 
         $attachmentPath = $this->prepareAttachmentUpload($plan);
+        $attachmentWarning = null;
 
         if ($attachmentPath !== null) {
             $attachmentEndpoint = $direction === 'issued'
@@ -260,7 +320,15 @@ class EInvoiceImportCommand extends Command
 
             if ($attachmentResponse->successful()) {
                 $payload['data']['attachment_token'] = $attachmentResponse->json('data.attachment_token');
+            } else {
+                $attachmentWarning = 'attachment upload failed: '.$api->errorMessage($attachmentResponse);
+
+                if (! $this->option('json')) {
+                    $this->warn("{$plan['file_name']}: document will be created without its attachment ({$attachmentWarning}).");
+                }
             }
+
+            @unlink($attachmentPath['path']);
         }
 
         $createEndpoint = $direction === 'issued'
@@ -269,12 +337,14 @@ class EInvoiceImportCommand extends Command
 
         $response = $api->post($createEndpoint, $payload);
 
+        $suffix = $attachmentWarning !== null ? " ({$attachmentWarning})" : '';
+
         if ($response->failed()) {
             return [
                 'file' => $plan['file_name'],
                 'status' => 'failed',
                 'id' => null,
-                'message' => $api->errorMessage($response),
+                'message' => $api->errorMessage($response).$suffix,
             ];
         }
 
@@ -282,7 +352,7 @@ class EInvoiceImportCommand extends Command
             'file' => $plan['file_name'],
             'status' => 'imported',
             'id' => $response->json('data.id'),
-            'message' => 'OK',
+            'message' => 'OK'.$suffix,
         ];
     }
 

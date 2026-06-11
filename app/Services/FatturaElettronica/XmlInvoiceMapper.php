@@ -65,6 +65,10 @@ class XmlInvoiceMapper
             $warnings[] = 'The invoice number could not be split into number and numeration; Fatture in Cloud will auto-assign the numeric part.';
         }
 
+        if ($direction === 'issued' && ($number['year_first'] ?? false)) {
+            $warnings[] = "Invoice number '{$invoice['document_number']}' looks year-first; it was split as number {$number['number']} with numeration '{$number['numeration']}'. Verify the document number after import.";
+        }
+
         $document = array_filter([
             'type' => $apiType,
             'entity' => $this->mapEntity($entity, $invoice, $direction, $identity),
@@ -243,7 +247,9 @@ class XmlInvoiceMapper
             $documentTotal = (float) $totalAmount;
 
             if (abs($paymentSum - $documentTotal) > 0.01) {
-                $warnings[] = "Payment total from XML ({$paymentSum}) differs from document total ({$documentTotal}); payment amount omitted to let Fatture in Cloud auto-calculate.";
+                $warnings[] = $isSinglePayment
+                    ? "Payment total from XML ({$paymentSum}) differs from document total ({$documentTotal}); payment amount omitted to let Fatture in Cloud auto-calculate."
+                    : "Payment total from XML ({$paymentSum}) differs from document total ({$documentTotal}); XML installment amounts were kept, verify the payment schedule after import.";
             }
         }
 
@@ -392,25 +398,32 @@ class XmlInvoiceMapper
     }
 
     /**
-     * @return array{number: ?int, numeration: ?string}
+     * @return array{number: ?int, numeration: ?string, year_first: bool}
      */
     protected function splitIssuedNumber(string $number): array
     {
         $number = trim($number);
 
         if ($number === '') {
-            return ['number' => null, 'numeration' => null];
+            return ['number' => null, 'numeration' => null, 'year_first' => false];
         }
 
         if (preg_match('/^(?<prefix>[^\d]*)(?<number>\d+)(?<suffix>.*)$/', $number, $matches) !== 1) {
-            return ['number' => null, 'numeration' => $number];
+            return ['number' => null, 'numeration' => $number, 'year_first' => false];
         }
 
         $numeration = trim(($matches['prefix'] ?? '').($matches['suffix'] ?? ''));
 
+        // A "2026/15"-style number splits as number=2026, which is probably
+        // the year rather than the document number — flag it for a warning.
+        $yearFirst = $matches['prefix'] === ''
+            && preg_match('/^20\d{2}$/', $matches['number']) === 1
+            && preg_match('/\d/', $matches['suffix']) === 1;
+
         return [
             'number' => (int) $matches['number'],
             'numeration' => $numeration !== '' ? $numeration : null,
+            'year_first' => $yearFirst,
         ];
     }
 

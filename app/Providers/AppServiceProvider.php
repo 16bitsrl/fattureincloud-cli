@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\Services\FicApiClient;
 use App\Services\FicDescriber;
-use App\Services\SpecNormalizer;
+use App\Services\TokenRefresher;
 use App\Services\TokenStore;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\Response;
@@ -21,31 +21,15 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(DescriberContract::class, FicDescriber::class);
 
-        // Use a writable location for the normalized spec (PHAR can't write inside itself)
-        $cacheDir = TokenStore::configDir().DIRECTORY_SEPARATOR.'cache';
-        $specPath = SpecNormalizer::normalize(
-            resource_path('openapi/fattureincloud.yaml'),
-            $cacheDir.DIRECTORY_SEPARATOR.'fattureincloud-normalized.yaml',
-        );
-
         OpenApiCli::register(
-            specPath: $specPath,
+            specPath: resource_path('openapi/fattureincloud.yaml'),
             namespace: 'api',
         )
             ->baseUrl('https://api-v2.fattureincloud.it')
             ->useOperationIds()
-            ->cache(ttl: 86400)
             ->jsonOutput()
             ->followRedirects()
-            ->auth(function () {
-                $token = TokenStore::getAccessToken();
-
-                if (! $token) {
-                    return null;
-                }
-
-                return $token;
-            })
+            ->auth(fn () => TokenRefresher::freshAccessToken())
             ->onError(function (Response $response, Command $command) {
                 $retryAfter = $response->header('Retry-After');
 
