@@ -45,7 +45,9 @@ jobs:
         run: php fic app:build fic --build-version=${{ steps.version.outputs.version }}
 
       - name: Test PHAR
-        run: ./builds/fic --version
+        run: |
+          ./builds/fic --version
+          ./builds/fic skill --list | grep -q xml-import
 
       - name: Upload PHAR artifact
         uses: actions/upload-artifact@v4

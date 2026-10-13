@@ -1,0 +1,44 @@
+name: Test installers
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'install.sh'
+      - 'install.ps1'
+      - 'tests/Install/**'
+      - '.github/workflows/test-install.yml'
+  pull_request:
+    paths:
+      - 'install.sh'
+      - 'install.ps1'
+      - 'tests/Install/**'
+      - '.github/workflows/test-install.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  unix:
+    name: install.sh (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./tests/Install/install-test.sh
+
+  windows:
+    name: install.ps1 (windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install latest release
+        shell: pwsh
+        run: |
+          $env:FIC_INSTALL_DIR = "$env:RUNNER_TEMP\fic"
+          ./install.ps1
+          & "$env:RUNNER_TEMP\fic\fic.exe" --version

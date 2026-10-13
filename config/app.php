@@ -7,5 +7,6 @@ return [
     'providers' => [
         0 => 'App\\Providers\\AppServiceProvider',
         1 => 'Spatie\\OpenApiCli\\OpenApiCliServiceProvider',
+        2 => 'App\\Providers\\ScopedCommandsServiceProvider',
     ],
 ];

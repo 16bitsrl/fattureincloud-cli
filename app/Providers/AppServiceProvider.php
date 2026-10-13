@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
                     401 => $command->error('Authentication failed. Run: fic auth:login'),
                     403 => $command->error($retryAfter
                         ? 'Quota exhausted. Retry after '.$retryAfter.'s.'
-                        : 'Permission denied. Check your token scopes, company permissions, and plan limits.'),
+                        : 'Permission denied. The sign-in may lack a permission (check fic auth:status, add it with fic auth:grant SCOPE), or the user role or company plan does not allow this operation.'),
                     429 => $command->warn('Rate limited. Retry after '.$response->header('Retry-After', '60').'s.'),
                     default => false,
                 };

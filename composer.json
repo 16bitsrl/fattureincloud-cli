@@ -1,6 +1,6 @@
 {
     "name": "16bitsrl/fattureincloud-cli",
-    "description": "Comprehensive CLI for Fatture in Cloud API - built for humans and agents.",
+    "description": "CLI for Fatture in Cloud, with full API coverage - built for humans and agents.",
     "keywords": ["fattureincloud", "invoicing", "e-invoice", "cli", "api", "fattura", "italia"],
     "homepage": "https://github.com/16bitsrl/fattureincloud-cli",
     "type": "project",

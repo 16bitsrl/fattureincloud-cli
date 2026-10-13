@@ -22,6 +22,8 @@ class StatusCommand extends Command
             'user_name' => $auth['user_name'] ?? null,
             'user_email' => $auth['user_email'] ?? null,
             'has_refresh_token' => isset($auth['refresh_token']),
+            // null when unknown (manual token or a login from an older version)
+            'scopes' => $auth['scopes'] ?? null,
             'company_id' => $config['company_id'] ?? null,
             'config_dir' => TokenStore::configDir(),
         ];
@@ -44,6 +46,7 @@ class StatusCommand extends Command
         $this->line("  Email:      {$status['user_email']}");
         $this->line('  Company ID: '.($status['company_id'] ?? '<not set>'));
         $this->line('  Refresh:    '.($status['has_refresh_token'] ? 'yes' : 'no'));
+        $this->line('  Scopes:     '.($status['scopes'] !== null ? implode(' ', $status['scopes']) : 'unknown'));
         $this->line("  Config:     {$status['config_dir']}");
 
         return self::SUCCESS;

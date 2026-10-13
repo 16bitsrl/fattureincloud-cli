@@ -1,6 +1,6 @@
 {
     "name": "16bitsrl/fattureincloud-cli-build",
-    "description": "Build-time manifest for the Fatture in Cloud CLI PHAR.",
+    "description": "Build-time manifest for the fic PHAR (CLI for Fatture in Cloud).",
     "type": "project",
     "license": "MIT",
     "require": {

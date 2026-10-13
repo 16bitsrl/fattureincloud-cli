@@ -1,4 +1,13 @@
-# Fatture in Cloud CLI
+# CLI for Fatture in Cloud
+
+## Just want to use the CLI?
+
+If you were pointed here to use Fatture in Cloud (not to develop this CLI), do not clone or build anything:
+
+1. Install the single binary: `curl -fsSL https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.sh | sh` (Windows: `irm https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.ps1 | iex`)
+2. Run `fic` and follow its instructions (`fic auth:login`, then `fic skill` for the full usage guide).
+
+The rest of this file is for developing the CLI itself.
 
 ## Architecture
 
@@ -13,10 +22,23 @@ Laravel Zero 12 CLI application using `spatie/laravel-openapi-cli` to auto-gener
 - `app/Services/TokenStore.php` — reads/writes `~/.config/fattureincloud-cli/auth.json` and `config.json`
 - `app/Commands/Auth/` — login, logout, status, refresh commands
 - `app/Commands/Company/` — set/current company context commands
-- `skills/fattureincloud/SKILL.md` — agent skill file
+- `skills/fattureincloud/SKILL.md` — agent skill file, also bundled in the PHAR and printed by `fic skill`
+- `app/Commands/GuideCommand.php` — default command (`fic` with no arguments, also `fic --help`): agent-oriented overview
+- `config/oauth.php` — built-in OAuth app used by `fic auth:login` (overridable with `FIC_CLIENT_ID`/`FIC_CLIENT_SECRET`)
+- `install.sh` / `install.ps1` — binary installers (`curl | sh`, `irm | iex`), tested by `tests/Install/install-test.sh` and `.github/workflows/test-install.yml`
+- `llms.txt` — entry point for agents pointed at the repository
+- `site/` — public website (integration page, privacy policy, terms, App Store assets) published to GitHub Pages by `.github/workflows/pages.yml`
+- `marketing/` — sources of the App Store screenshots; `marketing/render.sh` renders them into `site/assets/store/`
+- Naming: the app is called "CLI" and is presented as "CLI for Fatture in Cloud" / "CLI per Fatture in Cloud". Fatture in Cloud brand rules forbid the brand inside the app name: use it only referentially, never in all caps
+- `app/Services/OAuthScopes.php` — scope catalog (read-only/full presets) and required-scope logic from the spec `security` blocks
+- `app/OpenApi/ScopedEndpointCommand.php` + `app/Providers/ScopedCommandsServiceProvider.php` — wrap the generated `api:*` commands to check granted scopes before calling the API (provider registered after `OpenApiCliServiceProvider`; kept outside `app/Commands` because that folder is auto-loaded)
 - `bin/check-phar-sync.sh` — verifies that committed `builds/fic` matches the source version
 - `bin/release.sh` — release helper that rebuilds `builds/fic`, commits it, tags, and pushes
 - `bin/update-spec.sh` — script to update the OpenAPI spec from upstream
+
+## Project docs
+
+`docs/` holds project decisions and plans (in Italian), e.g. `docs/agent-integration.md`. Whether `docs/` gets committed is still to be decided with the maintainer: ask before committing it.
 
 ## Development
 
@@ -87,7 +109,8 @@ git add -A && git commit -m "description of changes"
 - Provider registration is manual in `config/app.php` — Laravel Zero disables auto-discovery
 - The `OpenApiCliServiceProvider` is registered in `config/app.php` providers array, AFTER `AppServiceProvider`
 - Use `.auth()` callback, NOT `.bearer()` — the token is loaded dynamically from TokenStore
-- `resources/` directory MUST be in `box.json` for PHAR builds
+- `resources/` and `skills/` directories MUST be in `box.json` and in the copy list of `BuildCommand` for PHAR builds
+- Inside the PHAR use `scandir()`, not `glob()`: glob does not see `phar://` paths
 - `resource_path()` works in PHARs but paths must be relative
 - All runtime deps are in `require-dev` because the distributed artifact is a compiled PHAR
 - `box.json` has `"exclude-dev-files": false` so dev deps get bundled into the PHAR

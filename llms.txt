@@ -1,0 +1,28 @@
+# fic: CLI for Fatture in Cloud
+
+> Command line client for the Fatture in Cloud API (Italian invoicing and e-invoicing), designed for humans and AI agents. Full API coverage plus helpers for search and XML e-invoice import.
+
+## Install (single static binary, no PHP needed)
+
+- macOS/Linux: `curl -fsSL https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.sh | sh` (installs to `~/.local/bin/fic`)
+- Windows: `irm https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.ps1 | iex`
+
+## First steps
+
+1. `fic auth:login`: prints a link and a short code; the user opens the link, enters the code and approves read-only access while the CLI waits. Alternative: `fic auth:login --token=TOKEN`.
+   When a command needs more (e.g. creating an invoice) it fails and prints the `fic auth:grant SCOPE` to run; the user approves again, then retry.
+2. `fic company:set`: choose the default company (`fic company:current --json` reads it back).
+3. `fic`: overview of the key commands and where to find more.
+
+## Docs built into the binary
+
+- `fic skill`: full usage guide (filters, sorting, pagination, workflows, errors, quotas)
+- `fic skill --list`, then `fic skill TOPIC`: detailed reference topics
+- `fic api:list`: every API command with HTTP method and path
+- `fic api:<command> --help`: parameters of a command
+
+## Sources
+
+- [Usage guide](skills/fattureincloud/SKILL.md)
+- [References](skills/fattureincloud/references/)
+- [README](README.md)

@@ -27,7 +27,7 @@ trait RendersBanner
 
         $output->writeln('');
 
-        $tagline = ' ✦ Fatture in Cloud :: fattureincloud.it ✦ ';
+        $tagline = ' ✦ CLI for Fatture in Cloud ✦ ';
         $output->writeln("\e[48;5;27m\e[97m\e[1m{$tagline}\e[0m");
 
         $output->writeln('');

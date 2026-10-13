@@ -14,7 +14,9 @@ class FicDescriber extends Describer
 
     protected function describeTitle(Application $application, OutputInterface $output): DescriberContract
     {
-        $this->renderBanner($output);
+        if ($output->isDecorated()) {
+            $this->renderBanner($output);
+        }
 
         return parent::describeTitle($application, $output);
     }

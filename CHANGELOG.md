@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning from `1.0.1` onward.
 
+## [Unreleased]
+
+### Added
+
+- `install.sh` (`curl | sh`) and `install.ps1` (`irm | iex`) install the static binary with checksum verification, no PHP or Composer needed
+- `fic` without arguments (and `fic --help`) now prints an agent-oriented overview: sign-in status, key commands, where to find docs
+- `fic skill` prints the bundled usage guide; `fic skill --list` and `fic skill TOPIC` print the reference topics
+- `auth:login --no-browser` and `--timeout=` options
+- Token refresh works without a client secret for device code logins
+- Incremental permissions: `fic auth:grant SCOPE...` adds OAuth scopes on top of the current ones; `auth:login --grant=` and `--full` choose them at sign-in
+- API commands check the granted scopes before calling the API and print the `fic auth:grant` to run when one is missing
+- `auth:status` shows the granted scopes
+- `llms.txt` and an AGENTS.md section pointing agents to the binary installer
+
+### Changed
+
+- `auth:login` now signs in with the built-in OAuth app by default using the device code flow: the user opens a link and enters a short code. No client secret ships with the binary and no local port is needed, so it also works over SSH and in containers. `--token` and `--client-id`/`--client-secret` (authorization code flow) remain available
+- `auth:login` asks for read-only access by default instead of full access to everything
+- Without a terminal, `auth:login` lists the companies and suggests `fic company:set` instead of prompting
+- The ASCII banner is no longer printed when output is not a terminal
+- The project is now presented as "CLI for Fatture in Cloud", following the Fatture in Cloud brand guidelines
+
 ## [1.1.0] - 2026-06-11
 
 ### Added

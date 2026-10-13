@@ -2,6 +2,7 @@
 
 namespace App\Commands\Auth;
 
+use App\Services\TokenRefresher;
 use App\Services\TokenStore;
 use Illuminate\Support\Facades\Http;
 use LaravelZero\Framework\Commands\Command;
@@ -16,9 +17,9 @@ class RefreshCommand extends Command
     {
         $refreshToken = TokenStore::getRefreshToken();
         $clientId = TokenStore::getClientId();
-        $clientSecret = TokenStore::getClientSecret();
+        $clientSecret = TokenRefresher::clientSecret(TokenStore::load());
 
-        if (! $refreshToken || ! $clientId || ! $clientSecret) {
+        if (! $refreshToken || ! $clientId) {
             $this->error('No refresh token available. Re-authenticate with: fic auth:login');
 
             return self::FAILURE;
@@ -26,12 +27,7 @@ class RefreshCommand extends Command
 
         $this->info('Refreshing access token...');
 
-        $response = Http::post('https://api-v2.fattureincloud.it/oauth/token', [
-            'grant_type' => 'refresh_token',
-            'client_id' => $clientId,
-            'client_secret' => $clientSecret,
-            'refresh_token' => $refreshToken,
-        ]);
+        $response = Http::post('https://api-v2.fattureincloud.it/oauth/token', TokenRefresher::refreshPayload($clientId, $clientSecret, $refreshToken));
 
         if ($response->failed()) {
             $this->error('Token refresh failed: '.$response->json('error_description', 'Unknown error'));

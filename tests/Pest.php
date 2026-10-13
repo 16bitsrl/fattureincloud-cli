@@ -1,5 +1,6 @@
 <?php
 
+use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
 /*
@@ -44,4 +45,24 @@ expect()->extend('toBeOne', function () {
 function something(): void
 {
     // ..
+}
+
+/**
+ * Runs the real `fic` entry point in a subprocess (no TTY, like an agent would)
+ * with an isolated config directory.
+ */
+function runFic(array $arguments, array $env = [], ?string $configHome = null): Process
+{
+    $configHome ??= sys_get_temp_dir().'/fic-tests-'.bin2hex(random_bytes(6));
+
+    $process = new Process(
+        [PHP_BINARY, base_path('fic'), ...$arguments],
+        base_path(),
+        ['XDG_CONFIG_HOME' => $configHome, ...$env],
+        timeout: 30,
+    );
+
+    $process->run();
+
+    return $process;
 }

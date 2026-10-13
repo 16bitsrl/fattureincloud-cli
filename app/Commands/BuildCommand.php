@@ -91,7 +91,7 @@ class BuildCommand extends Command implements SignalableCommandInterface
             File::deleteDirectory($buildDirectory);
             File::makeDirectory($buildDirectory, 0755, true);
 
-            foreach (['app', 'bootstrap', 'config', 'resources'] as $directory) {
+            foreach (['app', 'bootstrap', 'config', 'resources', 'skills'] as $directory) {
                 File::copyDirectory(base_path($directory), $buildDirectory.DIRECTORY_SEPARATOR.$directory);
             }
 

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="it">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CLI per Fatture in Cloud, di 16bit</title>
+    <meta name="description" content="CLI è il terminale per Fatture in Cloud: tutte le API da riga di comando, pensata per persone e agenti AI. Open source, gratuita, i dati restano tra il tuo computer e Fatture in Cloud.">
+    <link rel="icon" href="assets/favicon.png">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="site-header">
+    <div class="wrap">
+        <a class="brand" href="./"><img src="assets/logo.svg" alt=""> CLI <small>per Fatture in Cloud</small></a>
+        <nav>
+            <a href="#installazione">Installazione</a>
+            <a href="#agenti" class="hide-sm">Agenti AI</a>
+            <a href="#privacy" class="hide-sm">Dati e permessi</a>
+            <a href="https://github.com/16bitsrl/fattureincloud-cli">GitHub</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <div class="hero">
+        <div class="wrap">
+            <p class="eyebrow">Open source e gratuita</p>
+            <h1>Fatture in Cloud dal terminale, per te e per i tuoi agenti AI</h1>
+            <p class="lead">CLI dà accesso a tutte le API di Fatture in Cloud da riga di comando: fatture, clienti, fornitori, prodotti, documenti ricevuti e molto altro. Ed è pensata per essere usata anche da assistenti come Claude Code, Codex o Cursor.</p>
+
+            <div class="install" id="installazione">
+                <code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.sh | sh</code>
+                <button type="button" data-copy="install-cmd">Copia</button>
+            </div>
+            <p class="install-alt">Su macOS e Linux. Per Windows: <code>irm https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.ps1 | iex</code></p>
+
+            <div class="terminal" aria-label="Esempio di sessione nel terminale">
+                <div class="terminal-bar"><span></span><span></span><span></span></div>
+<pre><span class="t-dim">$</span> fic auth:login
+<span class="t-green">To authorize fic with your Fatture in Cloud account, open:</span>
+  https://fattureincloud.it/connetti
+<span class="t-green">and enter the code:</span>
+  <span class="t-bold">QQPF-TGMR</span>
+
+<span class="t-green">Authenticated as Mario Rossi (mario@rossi-srl.it)</span>
+<span class="t-green">Default company set: Rossi Srl (ID: 12345)</span></pre>
+            </div>
+        </div>
+    </div>
+
+    <section>
+        <div class="wrap">
+            <h2>Cosa puoi fare</h2>
+            <p class="section-lead">Un unico comando, <code>fic</code>, per lavorare con il tuo account Fatture in Cloud senza aprire il browser.</p>
+            <div class="features">
+                <div class="feature">
+                    <h3>Tutte le API</h3>
+                    <p>Documenti emessi e ricevuti, fatture elettroniche, clienti, fornitori, prodotti, corrispettivi, F24, prima nota, archivio e impostazioni.</p>
+                </div>
+                <div class="feature">
+                    <h3>Pensata per gli agenti AI</h3>
+                    <p>Risposte in JSON, una guida d'uso inclusa nel programma e messaggi d'errore che dicono esattamente cosa fare.</p>
+                </div>
+                <div class="feature">
+                    <h3>Permessi su misura</h3>
+                    <p>Al primo accesso concedi solo la lettura. I permessi di scrittura si aggiungono uno alla volta, quando servono davvero.</p>
+                </div>
+                <div class="feature">
+                    <h3>Import di fatture XML</h3>
+                    <p>Importa fatture elettroniche in formato XML o firmate .p7m, anche intere cartelle, con anteprima prima di creare i documenti.</p>
+                </div>
+                <div class="feature">
+                    <h3>Ricerca semplice</h3>
+                    <p>Trova clienti, fornitori e prodotti scrivendo parte del nome, senza imparare la sintassi dei filtri.</p>
+                </div>
+                <div class="feature">
+                    <h3>Un solo file da installare</h3>
+                    <p>Per macOS, Linux e Windows. Nessun prerequisito, si aggiorna rilanciando lo stesso comando di installazione.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="wrap narrow">
+            <h2>Come iniziare</h2>
+            <ol class="steps">
+                <li><div><h3>Installa</h3><p>Copia il comando di installazione qui sopra nel terminale.</p></div></li>
+                <li><div><h3>Collega il tuo account</h3><p>Lancia <code>fic auth:login</code>, apri il link che compare, accedi a Fatture in Cloud e inserisci il codice mostrato nel terminale.</p></div></li>
+                <li><div><h3>Inizia a lavorare</h3><p>Lancia <code>fic</code> per vedere i comandi principali e dove trovare la guida completa.</p></div></li>
+            </ol>
+        </div>
+    </section>
+
+    <section id="agenti">
+        <div class="wrap narrow">
+            <h2>Con il tuo agente AI</h2>
+            <p class="section-lead">Basta chiedere all'agente di installare CLI: il resto lo scopre da solo, perché la guida d'uso è inclusa nel programma (<code>fic skill</code>).</p>
+            <blockquote>Installa la CLI per Fatture in Cloud con <code>curl -fsSL https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.sh | sh</code>, poi lancia <code>fic</code> e segui le istruzioni.</blockquote>
+            <p class="section-lead" style="margin-top:24px">Quando l'agente deve collegare l'account o ottenere un nuovo permesso ti mostra un link e un codice: l'approvazione resta sempre a te.</p>
+        </div>
+    </section>
+
+    <section id="privacy">
+        <div class="wrap narrow">
+            <h2>I tuoi dati e i permessi</h2>
+            <p>CLI gira solo sul tuo computer e comunica direttamente con Fatture in Cloud. Non ci sono server intermedi di 16bit: noi non vediamo né conserviamo i tuoi dati, e il programma non raccoglie statistiche d'uso.</p>
+            <p>L'accesso al tuo account è autorizzato da te sul sito di Fatture in Cloud e parte in sola lettura. Se un comando ha bisogno di scrivere, per esempio per creare una fattura, CLI si ferma e ti indica quale permesso aggiungere. Le credenziali di accesso restano in un file sul tuo computer, riservato al tuo utente.</p>
+            <p>Il codice è open source con licenza MIT: puoi verificare tutto su <a href="https://github.com/16bitsrl/fattureincloud-cli">GitHub</a>.</p>
+        </div>
+    </section>
+
+    <section>
+        <div class="wrap narrow">
+            <h2>Supporto</h2>
+            <p>Per segnalare un problema o proporre un miglioramento apri una <a href="https://github.com/16bitsrl/fattureincloud-cli/issues">issue su GitHub</a>. Per tutto il resto scrivi a <a href="mailto:hello@16bit.it">hello@16bit.it</a>.</p>
+        </div>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <div class="wrap">
+        <nav>
+            <a href="privacy.html">Privacy policy</a>
+            <a href="termini.html">Termini e condizioni</a>
+            <a href="https://github.com/16bitsrl/fattureincloud-cli">Codice sorgente</a>
+            <a href="https://16bit.it">16bit.it</a>
+        </nav>
+        <p>16bit Srl, via Filippo Tajani 9, 20133 Milano. P.IVA 09662570960.</p>
+        <p>CLI è sviluppata da 16bit Srl e non è un prodotto di Fatture in Cloud. Fatture in Cloud è un marchio dei rispettivi titolari.</p>
+    </div>
+</footer>
+
+<script>
+    document.querySelectorAll('[data-copy]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var text = document.getElementById(button.dataset.copy).textContent;
+            navigator.clipboard.writeText(text).then(function () {
+                button.textContent = 'Copiato';
+                setTimeout(function () { button.textContent = 'Copia'; }, 1600);
+            });
+        });
+    });
+</script>
+</body>
+</html>

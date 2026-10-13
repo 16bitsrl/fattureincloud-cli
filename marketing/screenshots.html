@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<!--
+    App Store screenshots (1280x720). Render with: marketing/render.sh
+    Terminal content mirrors real `fic` output; account and company data are fictitious.
+-->
+<style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #ccc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    .shot { width: 1280px; height: 720px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding: 60px 80px 0; background: radial-gradient(1200px 600px at 50% -10%, #e6f7f4 0%, #f4f6f9 55%, #eef1f5 100%); margin-bottom: 20px; }
+    .shot h1 { margin: 0; font-size: 44px; line-height: 1.15; letter-spacing: -0.02em; color: #0f172a; text-align: center; }
+    .shot p { margin: 14px 0 0; font-size: 21px; color: #526077; text-align: center; }
+    .brand { position: absolute; top: 26px; left: 32px; display: flex; align-items: center; gap: 10px; font-weight: 650; color: #0f172a; font-size: 17px; }
+    .brand img { width: 30px; height: 30px; border-radius: 7px; }
+    .terminal { margin-top: 40px; width: 1000px; flex: 1; border-radius: 16px 16px 0 0; background: #0d131c; box-shadow: 0 0 0 1px #0f172a14, 0 30px 60px -20px #0f172a66; overflow: hidden; }
+    .bar { display: flex; gap: 8px; padding: 16px 18px; }
+    .bar span { width: 12px; height: 12px; border-radius: 50%; background: #2c3645; }
+    pre { margin: 0; padding: 6px 30px 30px; color: #e6edf3; font: 19px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+    .d { color: #8b98a9; } .g { color: #5eead4; } .y { color: #fcd34d; } .r { color: #fca5a5; } .b { color: #fff; font-weight: 700; }
+    .k { color: #93c5fd; } .s { color: #fcd34d; } .n { color: #f9a8d4; }
+</style>
+</head>
+<body>
+
+<section class="shot" id="shot-1">
+    <div class="brand"><img src="../site/assets/logo.svg" alt="">CLI</div>
+    <h1>Collega il tuo account con un codice</h1>
+    <p>Nessuna password nel terminale: approvi tu, sul sito di Fatture in Cloud.</p>
+    <div class="terminal"><div class="bar"><span></span><span></span><span></span></div>
+<pre><span class="d">$</span> fic auth:login
+<span class="g">To authorize fic with your Fatture in Cloud account, open:</span>
+  https://fattureincloud.it/connetti
+<span class="g">and enter the code:</span>
+  <span class="b">QQPF-TGMR</span>
+
+Waiting for the authorization (the code expires in 300s)...
+
+<span class="g">Authenticated as Mario Rossi (mario@rossi-srl.it)</span>
+Permissions: entity.clients:r entity.suppliers:r products:r ...
+<span class="g">Default company set: Rossi Srl (ID: 12345)</span></pre>
+    </div>
+</section>
+
+<section class="shot" id="shot-2">
+    <div class="brand"><img src="../site/assets/logo.svg" alt="">CLI</div>
+    <h1>Tutto quello che serve, in un colpo d'occhio</h1>
+    <p>Basta lanciare <b>fic</b>: comandi principali e guida completa per le persone e per gli agenti AI.</p>
+    <div class="terminal"><div class="bar"><span></span><span></span><span></span></div>
+<pre><span class="d">$</span> fic
+fic 1.2.0: command line client for the Fatture in Cloud API.
+
+Status
+  Signed in as Mario Rossi (mario@rossi-srl.it), default company: 12345
+
+Get started
+  fic auth:login              Sign in through the browser, read-only (or --token=TOKEN)
+  fic auth:grant SCOPE        Add a permission when a command asks for it
+
+Call the API
+  fic api:list                Every API command with its HTTP method and path
+  fic clients:search TEXT --company-id=ID</pre>
+    </div>
+</section>
+
+<section class="shot" id="shot-3">
+    <div class="brand"><img src="../site/assets/logo.svg" alt="">CLI</div>
+    <h1>Permessi solo quando servono</h1>
+    <p>Si parte in sola lettura. Se un comando deve scrivere, CLI ti dice quale permesso aggiungere.</p>
+    <div class="terminal"><div class="bar"><span></span><span></span><span></span></div>
+<pre><span class="d">$</span> fic api:create-issued-document --company-id=12345 --input="$(cat fattura.json)"
+<span class="r">Missing permission: this command needs issued_documents.invoices:a.</span>
+Grant it with: fic auth:grant issued_documents.invoices:a
+Approve it with the link and code it prints, then run this command again.
+
+<span class="d">$</span> fic auth:grant issued_documents.invoices:a
+<span class="g">To authorize fic with your Fatture in Cloud account, open:</span>
+  https://fattureincloud.it/connetti
+<span class="g">and enter the code:</span>
+  <span class="b">LCPI-YYTX</span></pre>
+    </div>
+</section>
+
+<section class="shot" id="shot-4">
+    <div class="brand"><img src="../site/assets/logo.svg" alt="">CLI</div>
+    <h1>Risposte in JSON, pronte per gli agenti AI</h1>
+    <p>Filtri, ordinamento e paginazione di tutte le API, con output leggibile da script e assistenti.</p>
+    <div class="terminal"><div class="bar"><span></span><span></span><span></span></div>
+<pre><span class="d">$</span> fic api:list-issued-documents --company-id=12345 --type=invoice --sort=-date
+{
+    <span class="k">"current_page"</span>: <span class="n">1</span>,
+    <span class="k">"data"</span>: [
+        {
+            <span class="k">"id"</span>: <span class="n">48213</span>,
+            <span class="k">"type"</span>: <span class="s">"invoice"</span>,
+            <span class="k">"number"</span>: <span class="n">42</span>,
+            <span class="k">"date"</span>: <span class="s">"2026-10-01"</span>,
+            <span class="k">"entity"</span>: { <span class="k">"id"</span>: <span class="n">905</span>, <span class="k">"name"</span>: <span class="s">"Acme Srl"</span> },
+            <span class="k">"amount_net"</span>: <span class="n">1200</span>,
+            <span class="k">"amount_gross"</span>: <span class="n">1464</span>
+        },
+    </div>
+</section>
+
+</body>
+</html>

@@ -25,19 +25,14 @@ class TokenRefresher
 
         $refreshToken = $auth['refresh_token'] ?? null;
         $clientId = $auth['client_id'] ?? null;
-        $clientSecret = $auth['client_secret'] ?? null;
+        $clientSecret = static::clientSecret($auth);
 
-        if (! $refreshToken || ! $clientId || ! $clientSecret) {
+        if (! $refreshToken || ! $clientId) {
             return $token;
         }
 
         try {
-            $response = Http::post('https://api-v2.fattureincloud.it/oauth/token', [
-                'grant_type' => 'refresh_token',
-                'client_id' => $clientId,
-                'client_secret' => $clientSecret,
-                'refresh_token' => $refreshToken,
-            ]);
+            $response = Http::post('https://api-v2.fattureincloud.it/oauth/token', static::refreshPayload($clientId, $clientSecret, $refreshToken));
         } catch (Throwable) {
             return $token;
         }
@@ -58,5 +53,35 @@ class TokenRefresher
         ]);
 
         return $data['access_token'];
+    }
+
+    /**
+     * Device code logins (public clients) refresh without a client secret.
+     */
+    public static function refreshPayload(string $clientId, ?string $clientSecret, string $refreshToken): array
+    {
+        return array_filter([
+            'grant_type' => 'refresh_token',
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
+            'refresh_token' => $refreshToken,
+        ]);
+    }
+
+    /**
+     * The client secret for the stored login: the user's own app stores its
+     * secret in auth.json, the built-in app reads it from config.
+     */
+    public static function clientSecret(array $auth): ?string
+    {
+        if (! empty($auth['client_secret'])) {
+            return $auth['client_secret'];
+        }
+
+        $clientId = $auth['client_id'] ?? null;
+
+        return $clientId && $clientId === config('oauth.client_id')
+            ? (config('oauth.client_secret') ?: null)
+            : null;
     }
 }

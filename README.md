@@ -1,36 +1,57 @@
-# Fatture in Cloud CLI
+# CLI for Fatture in Cloud
 
 A CLI for the [Fatture in Cloud](https://www.fattureincloud.it) API, with full API coverage, agent-oriented docs, and a practical XML import workflow for fattura elettronica files.
 
-See `CHANGELOG.md` for release notes starting from `1.0.1`.
+Website: [16bitsrl.github.io/fattureincloud-cli](https://16bitsrl.github.io/fattureincloud-cli/). See `CHANGELOG.md` for release notes starting from `1.0.1`.
+
+CLI is developed by [16bit](https://16bit.it) and is not a Fatture in Cloud product.
 
 ## Install
 
+### macOS and Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.sh | sh
+```
+
+This downloads the single static binary for your platform from the latest GitHub release, verifies its checksum, and installs it to `~/.local/bin/fic`. No PHP or Composer needed.
+
+Set `FIC_VERSION=1.2.0` to install a specific version, or `FIC_INSTALL_DIR=/usr/local/bin` to pick another directory.
+
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.ps1 | iex
+```
+
+### Manual download
+
+Download `fic-<os>-<arch>` from the [latest release](https://github.com/16bitsrl/fattureincloud-cli/releases/latest), make it executable, and put it on your `PATH`:
+
+```bash
+chmod +x ./fic-linux-x86_64
+mv ./fic-linux-x86_64 ~/.local/bin/fic
+```
+
 ### Composer
+
+If you already have PHP 8.2+:
 
 ```bash
 composer global require 16bitsrl/fattureincloud-cli
 ```
 
-### Static binaries
-
-Each release also ships static builds for Linux, macOS, and Windows: download them from the GitHub release assets.
-
-After download, make the binary executable on Unix-like systems:
-
-```bash
-chmod +x ./fic-linux-x86_64
-./fic-linux-x86_64 --version
-```
-
 ## Quick start
 
 ```bash
-# Authenticate
+# Sign in with your Fatture in Cloud account (opens the browser)
 fic auth:login
 
 # Set your default company
 fic company:set
+
+# Overview of commands and docs
+fic
 
 # Explore the generated API commands
 fic api:list
@@ -41,7 +62,43 @@ fic suppliers:search studio --company-id=12345
 fic products:search consulting --company-id=12345
 ```
 
-Get your manual token at [secure.fattureincloud.it/api](https://secure.fattureincloud.it/api).
+`fic auth:login` shows a link and a short code: open the link, sign in to Fatture in Cloud, enter the code and approve. No secrets are stored in the binary, nothing runs on a local port, and it works over SSH too. Tokens are refreshed automatically.
+
+### Permissions
+
+The first sign-in grants **read-only** access. Write access is asked for only when it is needed:
+
+```bash
+fic api:create-client --company-id=12345 --input='{"data":{"name":"Acme"}}'
+# Missing permission: this command needs entity.clients:a.
+# Grant it with: fic auth:grant entity.clients:a
+
+fic auth:grant entity.clients:a     # approve in the browser, then run the command again
+fic auth:status                     # current permissions
+```
+
+If you already know what you need, ask for it at sign-in with `fic auth:login --grant=issued_documents.invoices:a,entity.clients:a`, or use `fic auth:login --full` for full access to everything. Running `fic auth:login` again goes back to read-only.
+
+Other ways to sign in:
+
+- `fic auth:login --token=TOKEN` with a manual token from [secure.fattureincloud.it/api](https://secure.fattureincloud.it/api)
+- `fic auth:login --client-id=ID --client-secret=SECRET` to use your own OAuth app (redirect URI `http://localhost:8511/callback`)
+- `fic auth:login --no-browser` to print the link without opening a browser
+
+## Using fic with AI agents
+
+Point your agent at this repository, or tell it:
+
+> Install the CLI for Fatture in Cloud with `curl -fsSL https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.sh | sh`, then run `fic` and follow its instructions.
+
+Once installed, everything an agent needs is built into the binary:
+
+- `fic` prints a short overview: sign-in status, key commands, where to learn more
+- `fic skill` prints the full usage guide (filters, pagination, workflows, errors, quotas)
+- `fic skill --list` and `fic skill TOPIC` print the detailed reference topics
+- `fic api:<command> --help` documents each API command
+
+The first sign-in needs a human: the agent runs `fic auth:login` and shows you the link and code it prints, you approve in the browser.
 
 ## XML e-invoice import
 
@@ -64,9 +121,7 @@ The import supports recap before creation, dry runs, `.xml` and `.xml.p7m` input
 
 ## Agent skill
 
-This repository includes an [agent skill](https://skills.sh) that teaches coding agents how to use the CLI, including filtering, sorting, pagination, FAQ edge cases, quotas, and XML import.
-
-### Install the skill
+The usage guide is also packaged as an [agent skill](https://skills.sh), so coding agents load it automatically when relevant.
 
 ```bash
 fic install-skill
@@ -134,7 +189,7 @@ If you only want to verify that the committed PHAR is still aligned with the sou
 
 CI also runs the same sync check on pushes and pull requests.
 
-Users install or update with `composer global require 16bitsrl/fattureincloud-cli`.
+Users install or update by re-running the install script (or `composer global require 16bitsrl/fattureincloud-cli`).
 
 ## Updating the OpenAPI spec
 

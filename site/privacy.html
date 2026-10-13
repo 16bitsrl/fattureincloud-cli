@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="it">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Privacy policy, CLI per Fatture in Cloud</title>
+    <link rel="icon" href="assets/favicon.png">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="site-header">
+    <div class="wrap">
+        <a class="brand" href="./"><img src="assets/logo.svg" alt=""> CLI <small>per Fatture in Cloud</small></a>
+        <nav><a href="./">Home</a><a href="termini.html">Termini</a></nav>
+    </div>
+</header>
+
+<main class="legal">
+    <div class="wrap narrow">
+        <h1>Privacy policy</h1>
+        <p class="updated">Ultimo aggiornamento: 13 ottobre 2026</p>
+
+        <p>Questa informativa descrive come vengono trattati i dati personali quando usi CLI, il programma a riga di comando per Fatture in Cloud sviluppato da 16bit Srl, e questo sito.</p>
+
+        <h2>Titolare del trattamento</h2>
+        <p>16bit Srl, via Filippo Tajani 9, 20133 Milano, P.IVA 09662570960. Contatto: <a href="mailto:hello@16bit.it">hello@16bit.it</a>.</p>
+
+        <h2>In breve</h2>
+        <ul>
+            <li>CLI funziona interamente sul tuo computer e comunica solo con le API di Fatture in Cloud.</li>
+            <li>16bit non riceve, non vede e non conserva i dati del tuo account Fatture in Cloud né quelli delle tue aziende.</li>
+            <li>CLI non raccoglie statistiche d'uso, non usa sistemi di tracciamento e non invia segnalazioni di errore.</li>
+        </ul>
+
+        <h2>Dati trattati dal programma</h2>
+        <p>Quando colleghi il tuo account, autorizzi CLI sul sito di Fatture in Cloud. Fatture in Cloud rilascia un token di accesso che CLI salva sul tuo computer, in un file riservato al tuo utente (<code>auth.json</code>, nella cartella <code>~/.config/fattureincloud-cli</code> su macOS e Linux, <code>%USERPROFILE%\.config\fattureincloud-cli</code> su Windows). Nello stesso file vengono salvati il tuo nome, il tuo indirizzo email e i permessi concessi, per mostrarti lo stato dell'accesso. In <code>config.json</code> viene salvata l'azienda predefinita.</p>
+        <p>I dati che leggi o modifichi con CLI (per esempio documenti, clienti e fornitori) passano direttamente tra il tuo computer e i server di Fatture in Cloud, che li trattano secondo la propria informativa privacy. 16bit non è parte di questo scambio.</p>
+        <p>Puoi cancellare in ogni momento le credenziali salvate con <code>fic auth:logout</code>, oppure tutti i dati di CLI eliminando la cartella di configurazione. Puoi revocare l'accesso di CLI anche dalle impostazioni del tuo account Fatture in Cloud.</p>
+
+        <h2>Download e aggiornamenti</h2>
+        <p>Il programma e gli script di installazione sono distribuiti tramite GitHub. Quando li scarichi, GitHub tratta i dati tecnici della richiesta (come l'indirizzo IP) secondo la propria informativa privacy. 16bit non riceve questi dati.</p>
+        <p>Il comando facoltativo <code>fic install-skill</code> usa lo strumento di terze parti <code>skills</code>, eseguito tramite npm, che ha una propria informativa privacy.</p>
+
+        <h2>Questo sito</h2>
+        <p>Il sito è ospitato su GitHub Pages. Non usa cookie, strumenti di analisi o servizi di tracciamento. GitHub può registrare dati tecnici delle visite (come l'indirizzo IP) per garantire la sicurezza del servizio, secondo la propria informativa privacy.</p>
+
+        <h2>Richieste di supporto</h2>
+        <p>Se ci scrivi via email o apri una segnalazione su GitHub, usiamo i dati che ci fornisci (come nome, indirizzo email e contenuto del messaggio) solo per risponderti. La base giuridica è la gestione della tua richiesta. Conserviamo le email per il tempo necessario a gestirla e per gli eventuali obblighi di legge. Le segnalazioni su GitHub sono pubbliche e restano soggette alle regole di GitHub.</p>
+
+        <h2>I tuoi diritti</h2>
+        <p>Ai sensi del Regolamento UE 2016/679 (GDPR) puoi chiedere l'accesso ai tuoi dati, la rettifica, la cancellazione, la limitazione del trattamento e la portabilità, e puoi opporti al trattamento, scrivendo a <a href="mailto:hello@16bit.it">hello@16bit.it</a>. Hai anche il diritto di proporre reclamo al Garante per la protezione dei dati personali.</p>
+
+        <h2>Modifiche</h2>
+        <p>Se questa informativa cambia, la versione aggiornata viene pubblicata su questa pagina con la nuova data di aggiornamento.</p>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="wrap">
+        <nav><a href="./">Home</a><a href="termini.html">Termini e condizioni</a><a href="https://github.com/16bitsrl/fattureincloud-cli">Codice sorgente</a></nav>
+        <p>16bit Srl, via Filippo Tajani 9, 20133 Milano. P.IVA 09662570960.</p>
+    </div>
+</footer>
+</body>
+</html>

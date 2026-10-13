@@ -8,14 +8,16 @@ metadata:
   repository: https://github.com/16bitsrl/fattureincloud-cli
 ---
 
-# Fatture in Cloud CLI Skill
+# fic: CLI for Fatture in Cloud
 
 Use the `fic` CLI to interact with the Fatture in Cloud API - Italy's most popular e-invoicing platform.
 
 ## Prerequisites
 
-- `fic` must be installed: `composer global require 16bitsrl/fattureincloud-cli`
-- Must be authenticated: run `fic auth:login` if not yet configured
+- `fic` must be installed. If `fic --version` fails, install the single binary (no PHP needed):
+  - macOS/Linux: `curl -fsSL https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.sh | sh`
+  - Windows: `irm https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.ps1 | iex`
+- Must be authenticated: run `fic auth:login` if not yet configured (the user approves access in the browser)
 - A default company must be set: run `fic company:set` if not yet configured
 
 Check status with: `fic auth:status --json`
@@ -27,16 +29,30 @@ Check status with: `fic auth:status --json`
 - `references/workflows.md` - detailed multi-step workflows (invoicing, attachments, reverse charge, ...)
 - `references/xml-import.md` - XML import strategy, mapping behavior, and V.2025 notes
 
+The same docs ship inside the binary: `fic skill` prints this guide, `fic skill --list` lists the topics, and `fic skill TOPIC` prints one (e.g. `fic skill xml-import`).
+
 ## Authentication
 
 ```bash
-# Interactive login (prompts for token or OAuth)
+# Default: read-only access. Prints a link and a short code, opens the
+# browser, and waits (the code expires in 5 minutes) while the user signs
+# in, enters the code and approves. Show the link and code to the user.
 fic auth:login
 
-# Direct token login (non-interactive, ideal for CI/agents)
+# Sign in with extra permissions, or full access to everything
+fic auth:login --grant=issued_documents.invoices:a,entity.clients:a
+fic auth:login --full
+
+# Add permissions later, on top of the current ones (user approves again)
+fic auth:grant issued_documents.invoices:a
+
+# Print the link without opening a browser
+fic auth:login --no-browser
+
+# Manual access token (CI, or when the user provides a token)
 fic auth:login --token=YOUR_ACCESS_TOKEN
 
-# OAuth2 flow with client credentials
+# Use your own OAuth app instead of the built-in one
 fic auth:login --client-id=ID --client-secret=SECRET
 
 # Check auth status
@@ -44,12 +60,27 @@ fic auth:status
 fic auth:status --json
 
 # Refresh OAuth token manually (expired OAuth tokens are also refreshed
-# automatically before API calls when client credentials are stored)
+# automatically before API calls)
 fic auth:refresh
 
 # Logout
 fic auth:logout
 ```
+
+### Permissions (OAuth scopes)
+
+Sign-in is read-only by default: scopes end in `:r` (read) or `:a` (full access, which includes read). Before calling the API, `api:*` commands check the scopes they need. When one is missing the command fails without calling the API and prints the fix:
+
+```
+Missing permission: this command needs entity.clients:a.
+Grant it with: fic auth:grant entity.clients:a
+```
+
+Run the suggested `fic auth:grant`, show the user the link and code it prints so they approve in the browser, then retry the command. Ask only for what the task needs. `fic auth:status --json` lists the granted `scopes` (`null` means unknown, e.g. a manual token: the API decides and replies 403 when a permission is missing).
+
+For issued documents the scope depends on the document type (`issued_documents.invoices`, `.quotes`, `.credit_notes`, `.receipts`, `.orders`, `.proformas`, `.delivery_notes`): pass `--type` or `data.type` so the right one is checked.
+
+`einvoice:import` creates documents and, when no match is found, clients or suppliers: grant write access first, e.g. `fic auth:grant issued_documents.invoices:a entity.clients:a` for issued invoices, `fic auth:grant received_documents:a entity.suppliers:a` for received ones. A `--dry-run` only needs read access.
 
 ## Company context
 
