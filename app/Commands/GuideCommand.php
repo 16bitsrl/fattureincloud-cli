@@ -85,6 +85,7 @@ class GuideCommand extends Command
             '  fic skill --list            Reference topics, then: fic skill TOPIC',
             '  fic list                    All commands',
             '  fic install-skill           Install the guide as a skill for your coding agent',
+            '  fic upgrade                 Upgrade fic to the latest version',
         ];
     }
 }

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning from `1.0.1` onward.
 
+## [Unreleased]
+
+### Added
+
+- `fic upgrade` installs the latest version (or `fic upgrade X.Y.Z` a specific one) after verifying its checksum; `--check` only reports whether a newer version is available
+
 ## [1.3.0] - 2026-10-13
 
 ### Added

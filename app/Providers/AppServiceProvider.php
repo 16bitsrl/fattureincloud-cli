@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\FicApiClient;
 use App\Services\FicDescriber;
+use App\Services\Installation;
 use App\Services\TokenRefresher;
 use App\Services\TokenStore;
 use Illuminate\Console\Command;
@@ -51,5 +52,6 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(TokenStore::class);
         $this->app->singleton(FicApiClient::class);
+        $this->app->singleton(Installation::class, fn () => Installation::detect());
     }
 }

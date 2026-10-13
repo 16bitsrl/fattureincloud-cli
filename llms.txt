@@ -6,6 +6,7 @@
 
 - macOS/Linux: `curl -fsSL https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.sh | sh` (installs to `~/.local/bin/fic`)
 - Windows: `irm https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.ps1 | iex`
+- Upgrade an existing install: `fic upgrade`
 
 ## First steps
 

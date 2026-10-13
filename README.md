@@ -41,6 +41,16 @@ If you already have PHP 8.2+:
 composer global require 16bitsrl/fattureincloud-cli
 ```
 
+### Upgrade
+
+```bash
+fic upgrade              # latest version
+fic upgrade --check      # only tell whether a newer version is available
+fic upgrade 1.2.0        # a specific version
+```
+
+The download is verified against the release checksums before replacing the binary. Composer installs upgrade with `composer global update 16bitsrl/fattureincloud-cli`.
+
 ## Quick start
 
 ```bash
@@ -190,7 +200,7 @@ If you only want to verify that the committed PHAR is still aligned with the sou
 
 CI also runs the same sync check on pushes and pull requests.
 
-Users install or update by re-running the install script (or `composer global require 16bitsrl/fattureincloud-cli`).
+Users install with the install script (or `composer global require 16bitsrl/fattureincloud-cli`) and upgrade with `fic upgrade`.
 
 ## Updating the OpenAPI spec
 
