@@ -38,7 +38,7 @@ Laravel Zero 12 CLI application using `spatie/laravel-openapi-cli` to auto-gener
 
 ## Project docs
 
-`docs/` holds project decisions and plans (in Italian), e.g. `docs/agent-integration.md`. Whether `docs/` gets committed is still to be decided with the maintainer: ask before committing it.
+`docs/` holds project decisions and plans (in Italian), e.g. `docs/agent-integration.md`. `docs/` is never committed: it is excluded locally through `.git/info/exclude`.
 
 ## Development
 

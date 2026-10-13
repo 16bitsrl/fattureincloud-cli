@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning from `1.0.1` onward.
 
+## [1.3.0] - 2026-10-13
+
+### Added
+
+- `auth:grant --full` asks for full access to everything on top of the current permissions, without choosing the company again
+
 ## [1.2.0] - 2026-10-13
 
 ### Added

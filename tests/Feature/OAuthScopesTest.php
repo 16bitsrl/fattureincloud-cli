@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\OAuthScopes;
 use App\Services\TokenStore;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -80,6 +81,33 @@ it('grants extra permissions on top of the current ones', function () {
     )->getOutput());
 
     expect($scopes)->toEqualCanonicalizing(['entity.clients:r', 'archive:a', 'issued_documents.invoices:a']);
+});
+
+it('grants full access to everything with auth:grant --full', function () {
+    $configHome = sys_get_temp_dir().'/fic-tests-'.bin2hex(random_bytes(6));
+    mkdir($configHome.'/fattureincloud-cli', 0700, true);
+    file_put_contents($configHome.'/fattureincloud-cli/auth.json', json_encode([
+        'access_token' => 'x',
+        'client_id' => 'builtin-client',
+        'scopes' => ['entity.clients:r'],
+    ]));
+
+    $scopes = requestedScopes(runFic(
+        ['auth:grant', '--full', '--no-browser', '--timeout=1'],
+        BUILTIN_APP,
+        $configHome,
+    )->getOutput());
+
+    expect($scopes)->toEqualCanonicalizing(OAuthScopes::full());
+});
+
+it('asks which permissions to grant when none are given', function () {
+    $process = runFic(['auth:grant', '--no-browser', '--timeout=1'], BUILTIN_APP);
+
+    expect($process->getExitCode())->toBe(1)
+        ->and($process->getOutput().$process->getErrorOutput())
+        ->toContain('--full')
+        ->not->toContain('oauth/authorize');
 });
 
 it('stops an API call that needs a permission not granted yet', function () {

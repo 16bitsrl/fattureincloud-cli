@@ -45,6 +45,7 @@ fic auth:login --full
 
 # Add permissions later, on top of the current ones (user approves again)
 fic auth:grant issued_documents.invoices:a
+fic auth:grant --full
 
 # Print the link without opening a browser
 fic auth:login --no-browser

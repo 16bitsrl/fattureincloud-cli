@@ -74,6 +74,7 @@ fic api:create-client --company-id=12345 --input='{"data":{"name":"Acme"}}'
 # Grant it with: fic auth:grant entity.clients:a
 
 fic auth:grant entity.clients:a     # approve in the browser, then run the command again
+fic auth:grant --full               # or full access to everything, without signing in again
 fic auth:status                     # current permissions
 ```
 
