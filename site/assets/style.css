@@ -93,7 +93,7 @@ blockquote { margin: 0; padding: 18px 22px; border-left: 3px solid var(--accent)
 
 /* Legal pages */
 .legal { padding: 56px 0 72px; }
-.legal h1 { font-size: 36px; letter-spacing: -0.02em; margin: 0 0 8px; }
+.legal h1 { font-size: 36px; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 12px; text-wrap: balance; }
 .legal .updated { color: var(--muted); margin: 0 0 36px; }
 .legal h2 { font-size: 22px; margin: 40px 0 10px; }
 .legal p, .legal li { color: #253047; }
@@ -112,3 +112,5 @@ blockquote { margin: 0; padding: 18px 22px; border-left: 3px solid var(--accent)
     .terminal pre { font-size: 12.5px; padding: 4px 16px 20px; }
 }
 .install-alt code { word-break: break-all; }
+.legal code { overflow-wrap: anywhere; }
+.legal .install code { white-space: normal; word-break: break-all; }

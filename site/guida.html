@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="it">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Guida alla connessione, CLI per Fatture in Cloud</title>
+    <meta name="description" content="Come installare CLI, collegare il tuo account Fatture in Cloud, gestire i permessi e scollegarlo.">
+    <link rel="icon" href="assets/favicon.png">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="site-header">
+    <div class="wrap">
+        <a class="brand" href="./"><img src="assets/logo.svg" alt=""> CLI <small>per Fatture in Cloud</small></a>
+        <nav><a href="./">Home</a><a href="privacy.html" class="hide-sm">Privacy</a><a href="https://github.com/16bitsrl/fattureincloud-cli">GitHub</a></nav>
+    </div>
+</header>
+
+<main class="legal">
+    <div class="wrap narrow">
+        <h1>Guida alla connessione</h1>
+        <p class="updated">Come installare CLI e collegarla al tuo account Fatture in Cloud.</p>
+
+        <h2>Cosa ti serve</h2>
+        <ul>
+            <li>Un account Fatture in Cloud con accesso all'azienda su cui vuoi lavorare.</li>
+            <li>Un computer con macOS, Linux o Windows e il terminale (su Windows, PowerShell).</li>
+        </ul>
+
+        <h2>1. Installa CLI</h2>
+        <p>Su macOS e Linux, incolla nel terminale:</p>
+        <div class="install"><code>curl -fsSL https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.sh | sh</code></div>
+        <p>Su Windows, in PowerShell:</p>
+        <div class="install"><code>irm https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.ps1 | iex</code></div>
+        <p>Il programma viene installato nella tua cartella utente, senza permessi di amministratore. Se il terminale ti segnala che la cartella non è nel PATH, segui l'indicazione che compare a schermo, poi controlla che tutto funzioni con <code>fic --version</code>.</p>
+
+        <h2>2. Collega il tuo account</h2>
+        <p>Lancia:</p>
+        <div class="install"><code>fic auth:login</code></div>
+        <p>CLI ti mostra un indirizzo e un codice di otto caratteri, per esempio <code>QQPF-TGMR</code>, e prova ad aprire il browser da solo.</p>
+        <ol>
+            <li>Apri l'indirizzo indicato (<code>https://fattureincloud.it/connetti</code>) e accedi con il tuo account Fatture in Cloud, se non l'hai già fatto.</li>
+            <li>Inserisci il codice mostrato nel terminale.</li>
+            <li>Controlla i permessi richiesti e conferma.</li>
+        </ol>
+        <p>Il codice vale 5 minuti: se scade, rilancia <code>fic auth:login</code>. Appena confermi, il terminale mostra il tuo nome. Se hai una sola azienda viene impostata come predefinita, altrimenti scegli quale usare con <code>fic company:set</code>.</p>
+        <p>Al primo collegamento CLI chiede solo permessi di <strong>lettura</strong>. Non serve inserire la password nel terminale, e funziona anche se usi CLI su un server remoto: basta aprire l'indirizzo da qualsiasi dispositivo.</p>
+
+        <h2>3. Aggiungi permessi quando servono</h2>
+        <p>Se un comando deve scrivere sul tuo account, per esempio per creare una fattura, CLI si ferma prima di fare qualsiasi modifica e ti indica il permesso da aggiungere:</p>
+        <div class="terminal" style="margin-top:12px"><div class="terminal-bar"><span></span><span></span><span></span></div>
+<pre><span class="t-red">Missing permission: this command needs issued_documents.invoices:a.</span>
+Grant it with: fic auth:grant issued_documents.invoices:a</pre></div>
+        <p>Lancia il comando suggerito e conferma come al punto 2: verranno chiesti i permessi che avevi già più quello nuovo. Puoi vedere in ogni momento i permessi attivi con <code>fic auth:status</code>.</p>
+        <p>Se sai già cosa ti serve puoi chiederlo subito, per esempio <code>fic auth:login --grant=issued_documents.invoices:a</code>, oppure dare accesso completo con <code>fic auth:login --full</code>. Rilanciando <code>fic auth:login</code> senza opzioni torni alla sola lettura.</p>
+
+        <h2>4. Usa CLI</h2>
+        <p>Lancia <code>fic</code> per vedere i comandi principali e <code>fic skill</code> per la guida completa. Se usi un agente AI come Claude Code, Codex o Cursor, chiedigli di lanciare <code>fic</code> e di seguire le istruzioni: quando deve collegare l'account o aggiungere un permesso ti mostrerà indirizzo e codice da confermare.</p>
+
+        <h2>Scollegare l'account</h2>
+        <p>Per eliminare le credenziali salvate sul tuo computer lancia <code>fic auth:logout</code>. Puoi revocare l'autorizzazione anche dalle impostazioni del tuo account Fatture in Cloud.</p>
+
+        <h2>Problemi frequenti</h2>
+        <ul>
+            <li><strong>"Not signed in"</strong>: non hai ancora collegato l'account, lancia <code>fic auth:login</code>.</li>
+            <li><strong>Il codice è scaduto</strong>: rilancia il comando, ne viene generato uno nuovo.</li>
+            <li><strong>"Missing permission"</strong>: aggiungi il permesso indicato con <code>fic auth:grant</code>.</li>
+            <li><strong>"Permission denied" pur avendo il permesso</strong>: il tuo utente su Fatture in Cloud potrebbe non avere accesso a quella funzione, oppure il piano dell'azienda non la comprende.</li>
+            <li><strong>Aggiornare CLI</strong>: rilancia il comando di installazione, scarica sempre l'ultima versione.</li>
+        </ul>
+        <p>Per altro aiuto apri una <a href="https://github.com/16bitsrl/fattureincloud-cli/issues">issue su GitHub</a> o scrivi a <a href="mailto:hello@16bit.it">hello@16bit.it</a>.</p>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <div class="wrap">
+        <nav><a href="./">Home</a><a href="privacy.html">Privacy policy</a><a href="termini.html">Termini e condizioni</a><a href="https://github.com/16bitsrl/fattureincloud-cli">Codice sorgente</a></nav>
+        <p>16bit Srl, via Filippo Tajani 9, 20133 Milano. P.IVA 09662570960.</p>
+    </div>
+</footer>
+</body>
+</html>
