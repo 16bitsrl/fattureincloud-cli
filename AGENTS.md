@@ -33,6 +33,7 @@ Laravel Zero 12 CLI application using `spatie/laravel-openapi-cli` to auto-gener
 - `app/Services/OAuthScopes.php` — scope catalog (read-only/full presets) and required-scope logic from the spec `security` blocks
 - `app/OpenApi/ScopedEndpointCommand.php` + `app/Providers/ScopedCommandsServiceProvider.php` — wrap the generated `api:*` commands to check granted scopes before calling the API (provider registered after `OpenApiCliServiceProvider`; kept outside `app/Commands` because that folder is auto-loaded)
 - `app/Commands/UpgradeCommand.php` + `app/Services/Installation.php` — `fic upgrade`: detects how fic was installed (static binary, plain PHAR, Composer, source) and replaces the running file from the GitHub release; it exits right after the swap because the running PHAR is gone
+- `app/Services/Releases.php` — latest version lookup and the daily update notice (cached in `update-check.json` in the config dir, printed on stderr by a `CommandFinished` listener in `AppServiceProvider`; skipped from source, with `FIC_NO_UPDATE_CHECK` or `CI`)
 - `bin/check-phar-sync.sh` — verifies that committed `builds/fic` matches the source version
 - `bin/release.sh` — release helper that rebuilds `builds/fic`, commits it, tags, and pushes
 - `bin/update-spec.sh` — script to update the OpenAPI spec from upstream

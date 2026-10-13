@@ -51,6 +51,8 @@ fic upgrade 1.2.0        # a specific version
 
 The download is verified against the release checksums before replacing the binary. Composer installs upgrade with `composer global update 16bitsrl/fattureincloud-cli`.
 
+Once a day fic checks whether a newer version exists and, if so, says so on stderr after the command output (JSON on stdout is untouched). Set `FIC_NO_UPDATE_CHECK=1` to turn this off; it is also off when `CI` is set.
+
 ## Quick start
 
 ```bash

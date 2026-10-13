@@ -5,13 +5,17 @@ namespace App\Providers;
 use App\Services\FicApiClient;
 use App\Services\FicDescriber;
 use App\Services\Installation;
+use App\Services\Releases;
 use App\Services\TokenRefresher;
 use App\Services\TokenStore;
 use Illuminate\Console\Command;
+use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use NunoMaduro\LaravelConsoleSummary\Contracts\DescriberContract;
 use Spatie\OpenApiCli\Facades\OpenApiCli;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +25,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->app->singleton(DescriberContract::class, FicDescriber::class);
+
+        // On stderr so JSON output on stdout stays clean.
+        Event::listen(CommandFinished::class, function (CommandFinished $event) {
+            if ($event->command === 'upgrade' || ! ($notice = Releases::updateNotice(app(Installation::class)))) {
+                return;
+            }
+
+            $output = $event->output instanceof ConsoleOutputInterface ? $event->output->getErrorOutput() : $event->output;
+            $output->writeln("<comment>{$notice}</comment>");
+        });
 
         OpenApiCli::register(
             specPath: resource_path('openapi/fattureincloud.yaml'),

@@ -17,7 +17,7 @@ Use the `fic` CLI to interact with the Fatture in Cloud API - Italy's most popul
 - `fic` must be installed. If `fic --version` fails, install the single binary (no PHP needed):
   - macOS/Linux: `curl -fsSL https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.sh | sh`
   - Windows: `irm https://raw.githubusercontent.com/16bitsrl/fattureincloud-cli/main/install.ps1 | iex`
-- If a command or option described here is missing, upgrade with `fic upgrade`
+- If a command or option described here is missing, upgrade with `fic upgrade`. fic also prints a one-line notice on stderr when a newer version is available
 - Must be authenticated: run `fic auth:login` if not yet configured (the user approves access in the browser)
 - A default company must be set: run `fic company:set` if not yet configured
 

@@ -4,11 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning from `1.0.1` onward.
 
-## [Unreleased]
+## [1.4.0] - 2026-10-13
 
 ### Added
 
 - `fic upgrade` installs the latest version (or `fic upgrade X.Y.Z` a specific one) after verifying its checksum; `--check` only reports whether a newer version is available
+- Once a day fic tells on stderr when a newer version is available; `FIC_NO_UPDATE_CHECK=1` (or `CI`) turns it off
 
 ## [1.3.0] - 2026-10-13
 

@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use App\Services\Installation;
+use App\Services\Releases;
 use Illuminate\Support\Facades\Http;
 use LaravelZero\Framework\Commands\Command;
 use Phar;
@@ -10,8 +11,6 @@ use Throwable;
 
 class UpgradeCommand extends Command
 {
-    protected const REPO = '16bitsrl/fattureincloud-cli';
-
     protected $signature = 'upgrade
         {version? : Version to install, e.g. 1.2.0 (default: latest)}
         {--check : Only tell whether a newer version is available}';
@@ -22,7 +21,7 @@ class UpgradeCommand extends Command
     {
         $current = config('app.version');
         $requested = $this->argument('version');
-        $target = $requested !== null ? ltrim($requested, 'v') : $this->latestVersion();
+        $target = $requested !== null ? ltrim($requested, 'v') : Releases::latestVersion();
 
         if ($target === null) {
             $this->error('Could not check the latest version on GitHub. Try again later.');
@@ -43,7 +42,7 @@ class UpgradeCommand extends Command
         }
 
         if ($installation->manager === Installation::COMPOSER) {
-            $this->error('fic was installed with Composer. Upgrade with: composer global update '.self::REPO);
+            $this->error('fic was installed with Composer. Upgrade with: composer global update '.Releases::REPO);
 
             return self::FAILURE;
         }
@@ -66,7 +65,7 @@ class UpgradeCommand extends Command
         $checksums = $this->download($target, 'checksums.txt');
 
         if ($binary === null || $checksums === null) {
-            $this->error("Could not download fic {$target}. Check that the version exists: https://github.com/".self::REPO.'/releases');
+            $this->error("Could not download fic {$target}. Check that the version exists: https://github.com/".Releases::REPO.'/releases');
 
             return self::FAILURE;
         }
@@ -93,24 +92,11 @@ class UpgradeCommand extends Command
         return self::SUCCESS;
     }
 
-    protected function latestVersion(): ?string
-    {
-        try {
-            $tag = Http::timeout(15)
-                ->get('https://api.github.com/repos/'.self::REPO.'/releases/latest')
-                ->json('tag_name');
-        } catch (Throwable) {
-            return null;
-        }
-
-        return is_string($tag) ? ltrim($tag, 'v') : null;
-    }
-
     protected function download(string $version, string $file): ?string
     {
         try {
             $response = Http::timeout(300)
-                ->get('https://github.com/'.self::REPO."/releases/download/v{$version}/{$file}");
+                ->get('https://github.com/'.Releases::REPO."/releases/download/v{$version}/{$file}");
         } catch (Throwable) {
             return null;
         }
