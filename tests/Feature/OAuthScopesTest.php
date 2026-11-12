@@ -148,6 +148,62 @@ it('checks the permission of the requested document type', function () {
     Http::assertSentCount(1);
 });
 
+it('can request every permission used by the API', function () {
+    // The OAuth2 security scheme lists every scope as `scope: description`.
+    preg_match_all('/^\s+([a-z_]+(?:\.[a-z_]+)?:[ra]): /m', file_get_contents(base_path('resources/openapi/fattureincloud.yaml')), $matches);
+
+    expect(array_unique($matches[1]))->not->toBeEmpty()
+        ->and(array_values(array_diff(array_unique($matches[1]), OAuthScopes::all())))->toBe([]);
+});
+
+it('grants the self-invoice permission', function () {
+    $configHome = sys_get_temp_dir().'/fic-tests-'.bin2hex(random_bytes(6));
+    mkdir($configHome.'/fattureincloud-cli', 0700, true);
+    file_put_contents($configHome.'/fattureincloud-cli/auth.json', json_encode([
+        'access_token' => 'x',
+        'client_id' => 'builtin-client',
+        'scopes' => ['entity.clients:r'],
+    ]));
+
+    $scopes = requestedScopes(runFic(
+        ['auth:grant', 'issued_documents.self_invoices:a', '--no-browser', '--timeout=1'],
+        BUILTIN_APP,
+        $configHome,
+    )->getOutput());
+
+    expect($scopes)->toEqualCanonicalizing(['entity.clients:r', 'issued_documents.self_invoices:a']);
+});
+
+it('checks the permission of self-invoices, work reports and supplier orders', function () {
+    /** @var TestCase $this */
+    signInWithScopes(['issued_documents.self_invoices:a']);
+    Http::fake(['*' => Http::response(['data' => []])]);
+
+    $this->artisan('api:list-issued-documents', ['--company-id' => 1, '--type' => 'self_supplier_invoice'])
+        ->assertSuccessful();
+    $this->artisan('api:list-issued-documents', ['--company-id' => 1, '--type' => 'self_own_invoice'])
+        ->assertSuccessful();
+    $this->artisan('api:list-issued-documents', ['--company-id' => 1, '--type' => 'work_report'])
+        ->expectsOutputToContain('fic auth:grant issued_documents.work_reports:r')
+        ->assertFailed();
+    $this->artisan('api:list-issued-documents', ['--company-id' => 1, '--type' => 'supplier_order'])
+        ->expectsOutputToContain('fic auth:grant issued_documents.supplier_orders:r')
+        ->assertFailed();
+
+    Http::assertSentCount(2);
+});
+
+it('lets the self-invoice permission read a document by id', function () {
+    /** @var TestCase $this */
+    signInWithScopes(['issued_documents.self_invoices:a']);
+    Http::fake(['*' => Http::response(['data' => []])]);
+
+    $this->artisan('api:get-issued-document', ['--company-id' => 1, '--document-id' => 1])
+        ->assertSuccessful();
+
+    Http::assertSentCount(1);
+});
+
 it('does not block calls when the granted permissions are unknown', function () {
     /** @var TestCase $this */
     signInWithScopes(null);

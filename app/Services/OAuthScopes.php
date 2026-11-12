@@ -11,7 +11,8 @@ class OAuthScopes
         'entity.clients', 'entity.suppliers', 'products',
         'issued_documents.invoices', 'issued_documents.credit_notes', 'issued_documents.receipts',
         'issued_documents.orders', 'issued_documents.quotes', 'issued_documents.proformas',
-        'issued_documents.delivery_notes',
+        'issued_documents.delivery_notes', 'issued_documents.work_reports',
+        'issued_documents.supplier_orders', 'issued_documents.self_invoices',
         'received_documents', 'receipts', 'taxes', 'archive', 'cashbook', 'settings',
         'calendar', 'stock',
     ];
@@ -32,6 +33,10 @@ class OAuthScopes
         'quote' => 'issued_documents.quotes',
         'proforma' => 'issued_documents.proformas',
         'delivery_note' => 'issued_documents.delivery_notes',
+        'work_report' => 'issued_documents.work_reports',
+        'supplier_order' => 'issued_documents.supplier_orders',
+        'self_own_invoice' => 'issued_documents.self_invoices',
+        'self_supplier_invoice' => 'issued_documents.self_invoices',
     ];
 
     /**
@@ -104,6 +109,8 @@ class OAuthScopes
             }
         }
 
+        $scopes = self::withUnlistedIssuedDocumentScopes(array_values($scopes));
+
         $resource = self::DOCUMENT_TYPES[$documentType] ?? null;
 
         if ($resource !== null) {
@@ -115,6 +122,33 @@ class OAuthScopes
         }
 
         return array_values($scopes);
+    }
+
+    /**
+     * The spec `security` blocks of issued document operations list only some
+     * document types: add the other issued document scopes, at the same access
+     * levels, so self-invoices, work reports and supplier orders are covered.
+     *
+     * @param  list<string>  $scopes
+     * @return list<string>
+     */
+    protected static function withUnlistedIssuedDocumentScopes(array $scopes): array
+    {
+        $levels = [];
+
+        foreach ($scopes as $scope) {
+            if (str_starts_with($scope, 'issued_documents.')) {
+                $levels[substr($scope, -1)] = true;
+            }
+        }
+
+        foreach (array_keys($levels) as $level) {
+            foreach (array_unique(self::DOCUMENT_TYPES) as $resource) {
+                $scopes[] = "{$resource}:{$level}";
+            }
+        }
+
+        return array_values(array_unique($scopes));
     }
 
     /**

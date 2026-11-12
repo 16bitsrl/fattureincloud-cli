@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning from `1.0.1` onward.
 
+## [1.4.1] - 2026-11-12
+
+### Fixed
+
+- Self-invoices, work reports and supplier orders can be used again: `auth:grant` and `--full` now ask for `issued_documents.self_invoices`, `issued_documents.work_reports` and `issued_documents.supplier_orders`, and API commands check them for the `self_own_invoice`, `self_supplier_invoice`, `work_report` and `supplier_order` types
+
 ## [1.4.0] - 2026-10-13
 
 ### Added

@@ -80,7 +80,7 @@ Grant it with: fic auth:grant entity.clients:a
 
 Run the suggested `fic auth:grant`, show the user the link and code it prints so they approve in the browser, then retry the command. Ask only for what the task needs. `fic auth:status --json` lists the granted `scopes` (`null` means unknown, e.g. a manual token: the API decides and replies 403 when a permission is missing).
 
-For issued documents the scope depends on the document type (`issued_documents.invoices`, `.quotes`, `.credit_notes`, `.receipts`, `.orders`, `.proformas`, `.delivery_notes`): pass `--type` or `data.type` so the right one is checked.
+For issued documents the scope depends on the document type (`issued_documents.invoices`, `.quotes`, `.credit_notes`, `.receipts`, `.orders`, `.proformas`, `.delivery_notes`, `.work_reports`, `.supplier_orders`, `.self_invoices`): pass `--type` or `data.type` so the right one is checked.
 
 `einvoice:import` creates documents and, when no match is found, clients or suppliers: grant write access first, e.g. `fic auth:grant issued_documents.invoices:a entity.clients:a` for issued invoices, `fic auth:grant received_documents:a entity.suppliers:a` for received ones. A `--dry-run` only needs read access.
 
@@ -339,6 +339,9 @@ Scopes follow the `resource:level` pattern. Levels: `:r` (read-only), `:a` (full
 | issued_documents.receipts:r/a | Receipts (ricevute) |
 | issued_documents.delivery_notes:r/a | Delivery notes (DDT) |
 | issued_documents.orders:r/a | Orders |
+| issued_documents.work_reports:r/a | Work reports |
+| issued_documents.supplier_orders:r/a | Supplier orders |
+| issued_documents.self_invoices:r/a | Self-invoices (autofatture, `self_own_invoice` and `self_supplier_invoice`) |
 | received_documents:r/a | All received documents (fatture passive) |
 | receipts:r/a | Corrispettivi |
 | taxes:r/a | F24 taxes |
